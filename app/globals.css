@@ -553,6 +553,9 @@
   .h-\[230px\] {
     height: 230px;
   }
+  .h-\[420px\] {
+    height: 420px;
+  }
   .h-auto {
     height: auto;
   }
@@ -1993,6 +1996,9 @@
     .hover\:text-white:hover {
       color: var(--color-white);
     }
+    .hover\:underline:hover {
+      text-decoration-line: underline;
+    }
     .hover\:opacity-100:hover {
       opacity: 100%;
     }
@@ -2073,6 +2079,9 @@
   .disabled\:pointer-events-none:disabled {
     pointer-events: none;
   }
+  .disabled\:cursor-not-allowed:disabled {
+    cursor: not-allowed;
+  }
   .disabled\:opacity-50:disabled {
     opacity: 50%;
   }
@@ -2143,6 +2152,9 @@
     }
     .sm\:px-3 {
       padding-inline: calc(var(--spacing) * 3);
+    }
+    .sm\:px-6 {
+      padding-inline: calc(var(--spacing) * 6);
     }
     .sm\:px-8 {
       padding-inline: calc(var(--spacing) * 8);
@@ -2273,6 +2285,9 @@
     }
     .lg\:px-5 {
       padding-inline: calc(var(--spacing) * 5);
+    }
+    .lg\:px-8 {
+      padding-inline: calc(var(--spacing) * 8);
     }
     .lg\:py-2\.5 {
       padding-block: calc(var(--spacing) * 2.5);

@@ -1,6 +1,7 @@
 /* eslint-disable @next/next/no-page-custom-font */
 import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
+import Script from "next/script";
 import LanguageShell from "@/components/LanguageShell";
 import "./globals.css";
 
@@ -11,14 +12,18 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  title: "Garden City Properties | Trusted Real Estate & Property Consultants in Oman",
+  title: {
+    default:
+      "Garden City Properties | Trusted Real Estate & Property Consultants in Oman",
+    template: "%s | Garden City Properties",
+  },
   description:
     "Oman's leading real estate consultancy offering expert property valuation, brokerage, management, and quantity surveying. Maximize your asset value with Garden City Properties.",
   keywords: [
     "real estate Oman",
     "property valuation Oman",
     "property management Muscat",
-    "real estate brokerage",
+    "real estate brokerage Muscat",
     "Garden City Properties",
     "investment opportunities Oman",
   ],
@@ -35,7 +40,8 @@ export const metadata: Metadata = {
     },
   },
   openGraph: {
-    title: "Garden City Properties | Trusted Real Estate & Property Consultants in Oman",
+    title:
+      "Garden City Properties | Trusted Real Estate & Property Consultants in Oman",
     description:
       "Oman's leading real estate consultancy offering expert property valuation, brokerage, management, and quantity surveying. Maximize your asset value with Garden City Properties.",
     url: "https://www.gardencityproperties.net",
@@ -54,15 +60,18 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Garden City Properties | Trusted Real Estate & Property Consultants in Oman",
+    title:
+      "Garden City Properties | Trusted Real Estate & Property Consultants in Oman",
     description:
       "Oman's leading real estate consultancy offering expert property valuation, brokerage, management, and quantity surveying. Maximize your asset value with Garden City Properties.",
     images: ["/Logo.jpeg"],
   },
   icons: {
-    icon: "/icon.png",
-    shortcut: "/icon.png",
-    apple: "/icon.png",
+    icon: [
+      { url: "/icon.png", type: "image/png", sizes: "512x512" },
+      { url: "/icon.png", type: "image/png", sizes: "192x192" },
+    ],
+    apple: [{ url: "/icon.png", sizes: "180x180", type: "image/png" }],
   },
   robots: {
     index: true,
@@ -99,7 +108,8 @@ export default function RootLayout({ children }: { children: ReactNode }) {
           href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800&family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap"
           rel="stylesheet"
         />
-        <script
+        <Script
+          id="json-ld-organization"
           type="application/ld+json"
           dangerouslySetInnerHTML={{
             __html: JSON.stringify({
@@ -111,7 +121,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
               "logo": "https://www.gardencityproperties.net/Logo.jpeg",
               "description": "Leading real estate consultancy and brokerage in Oman.",
               "telephone": "+9689495068217",
-              "email": "gardencityin@gmail.com",
+              "email": "info@gardencityproperties.net",
               "priceRange": "$$",
               "currenciesAccepted": "OMR",
               "hasMap": "https://maps.app.goo.gl/tZ5U4GjpML5jncRw5",
@@ -153,7 +163,8 @@ export default function RootLayout({ children }: { children: ReactNode }) {
             }),
           }}
         />
-        <script
+        <Script
+          id="json-ld-faq"
           type="application/ld+json"
           dangerouslySetInnerHTML={{
             __html: JSON.stringify({
@@ -188,7 +199,9 @@ export default function RootLayout({ children }: { children: ReactNode }) {
             }),
           }}
         />
-        <script
+        <Script
+          id="theme-lang-script"
+          strategy="beforeInteractive"
           dangerouslySetInnerHTML={{
             __html: `(function(){
               try {

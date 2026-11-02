@@ -123,11 +123,11 @@ export default function Footer() {
               </a>
 
               <a
-                href="mailto:gardencityin@gmail.com"
+                href="mailto:info@gardencityproperties.net"
                 className="flex items-center gap-3 transition-colors hover:text-sky-400"
               >
                 <Mail className="h-4 w-4 shrink-0 text-sky-400" />
-                <span>gardencityin@gmail.com</span>
+                <span>info@gardencityproperties.net</span>
               </a>
             </div>
 

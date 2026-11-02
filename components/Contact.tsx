@@ -6,25 +6,66 @@ import { Mail, MapPin, Phone } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
 
 export default function Contact() {
-  const [submitted, setSubmitted] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [statusMessage, setStatusMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
   const { dictionary } = useLanguage();
   const copy = dictionary.contact;
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    const formData = new FormData(event.currentTarget);
+    setStatusMessage(null);
+    setIsSubmitting(true);
+
+    const form = event.currentTarget;
+    const formData = new FormData(form);
     const name = String(formData.get("name") || "").trim();
     const email = String(formData.get("email") || "").trim();
     const phone = String(formData.get("phone") || "").trim();
     const message = String(formData.get("message") || "").trim();
 
-    const subject = encodeURIComponent(`Inquiry from ${name || "Website Visitor"}`);
-    const body = encodeURIComponent(
-      `Name: ${name}\nEmail: ${email}\nPhone: ${phone}\n\nMessage:\n${message}`,
-    );
+    const accessKey =
+      process.env.NEXT_PUBLIC_WEB3FORMS_KEY ||
+      "fc593170-cd44-4fa4-a69b-20a1d29a08ca";
 
-    setSubmitted(true);
-    window.location.href = `mailto:gardencityin@gmail.com?subject=${subject}&body=${body}`;
+    try {
+      const response = await fetch("https://api.web3forms.com/submit", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+        body: JSON.stringify({
+          access_key: accessKey,
+          name,
+          email,
+          phone,
+          message,
+          from_name: "Garden City Properties Website",
+          subject: `New Property Enquiry from ${name}`,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok || !data.success) {
+        throw new Error(data.message || "Failed to send enquiry.");
+      }
+
+      setStatusMessage({
+        type: "success",
+        text: copy.thanks || "Thank you. Your enquiry has been received.",
+      });
+      form.reset();
+    } catch (err: unknown) {
+      const errorMsg =
+        err instanceof Error ? err.message : "Failed to deliver enquiry.";
+      setStatusMessage({
+        type: "error",
+        text: `${errorMsg}`,
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   }
 
   return (
@@ -44,7 +85,7 @@ export default function Contact() {
           </h2>
           <p className="mt-3 text-sm text-slate-400">{copy.subtitle}</p>
 
-          <form action="mailto:gardencityin@gmail.com" method="GET" onSubmit={handleSubmit} className="mt-8 grid gap-4">
+          <form onSubmit={handleSubmit} className="mt-8 grid gap-4">
             <label className="grid gap-2 text-sm text-slate-300">
               {copy.name}
               <input
@@ -86,13 +127,22 @@ export default function Contact() {
             </label>
             <button
               type="submit"
-              className="mt-2 rounded-full bg-gradient-to-r from-sky-400 to-cyan-300 px-6 py-3 text-sm font-semibold text-slate-950 shadow-[0_0_24px_rgba(56,189,248,0.35)] transition hover:-translate-y-0.5"
+              disabled={isSubmitting}
+              className="mt-2 inline-flex items-center justify-center rounded-full bg-gradient-to-r from-sky-400 to-cyan-300 px-6 py-3 text-sm font-semibold text-slate-950 shadow-[0_0_24px_rgba(56,189,248,0.35)] transition hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {copy.send}
+              {isSubmitting ? "Sending..." : copy.send}
             </button>
-            {submitted ? (
-              <p className="text-sm text-sky-300">{copy.thanks}</p>
-            ) : null}
+            {statusMessage && (
+              <div
+                className={`mt-2 rounded-xl p-3 text-xs leading-relaxed ${
+                  statusMessage.type === "success"
+                    ? "border border-emerald-500/30 bg-emerald-950/40 text-emerald-300"
+                    : "border border-red-500/30 bg-red-950/40 text-red-300"
+                }`}
+              >
+                {statusMessage.text}
+              </div>
+            )}
           </form>
         </motion.div>
 
@@ -108,11 +158,11 @@ export default function Contact() {
             </h3>
             <p className="mt-3 text-sm leading-6 text-slate-400">{copy.directBody}</p>
             <a
-              href="mailto:gardencityin@gmail.com"
+              href="mailto:info@gardencityproperties.net"
               className="mt-8 flex items-center gap-3 rounded-2xl border border-white/10 bg-white/5 px-4 py-4 text-sm text-sky-200 transition hover:border-sky-400/40"
             >
               <Mail size={18} />
-              gardencityin@gmail.com
+              info@gardencityproperties.net
             </a>
             <a
               href="tel:+9689495068217"
