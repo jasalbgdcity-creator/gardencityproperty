@@ -10,16 +10,100 @@ import {
   CalendarDays,
   CheckCircle2,
   ExternalLink,
+  HardDrive,
   Image as ImageIcon,
   LogOut,
   Plus,
   RefreshCw,
   Ruler,
+  Sparkles,
   Square,
   Trash2,
   Upload,
 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
+
+const MAX_PROJECT_MEDIA_BYTES = 40 * 1024 * 1024; // 40 MB total project media cap
+
+function getTotalMediaBytes(
+  main: File | null,
+  gallery: File[],
+  floorPlan: File | null,
+): number {
+  let sum = 0;
+  if (main) sum += main.size;
+  if (floorPlan) sum += floorPlan.size;
+  for (const f of gallery) {
+    sum += f.size;
+  }
+  return sum;
+}
+
+// Client-side in-browser canvas compression utility
+async function compressImageFile(
+  file: File,
+  maxDimension = 2048,
+  quality = 0.82,
+): Promise<File> {
+  if (
+    !file.type.startsWith("image/") ||
+    file.type === "image/svg+xml" ||
+    file.size < 500 * 1024
+  ) {
+    return file;
+  }
+
+  return new Promise((resolve) => {
+    const img = new Image();
+    const url = URL.createObjectURL(file);
+    img.onload = () => {
+      URL.revokeObjectURL(url);
+      let { width, height } = img;
+      if (width > maxDimension || height > maxDimension) {
+        if (width > height) {
+          height = Math.round((height * maxDimension) / width);
+          width = maxDimension;
+        } else {
+          width = Math.round((width * maxDimension) / height);
+          height = maxDimension;
+        }
+      }
+      const canvas = document.createElement("canvas");
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext("2d");
+      if (!ctx) {
+        resolve(file);
+        return;
+      }
+      ctx.drawImage(img, 0, 0, width, height);
+      canvas.toBlob(
+        (blob) => {
+          if (blob && blob.size < file.size) {
+            const compressed = new File(
+              [blob],
+              file.name.replace(/\.[^.]+$/, ".webp"),
+              {
+                type: "image/webp",
+                lastModified: Date.now(),
+              },
+            );
+            resolve(compressed);
+          } else {
+            resolve(file);
+          }
+        },
+        "image/webp",
+        quality,
+      );
+    };
+    img.onerror = () => {
+      URL.revokeObjectURL(url);
+      resolve(file);
+    };
+    img.src = url;
+  });
+}
 
 interface ProjectRecord {
   id: string;
@@ -72,6 +156,13 @@ export default function AdminDashboardPage() {
   const [galleryPreviews, setGalleryPreviews] = useState<string[]>([]);
   const [floorPlanFile, setFloorPlanFile] = useState<File | null>(null);
   const [floorPlanPreview, setFloorPlanPreview] = useState<string | null>(null);
+  const [isCompressing, setIsCompressing] = useState(false);
+
+  // Derived media sizes & 40MB quota status
+  const totalMediaBytes = getTotalMediaBytes(imageFile, galleryFiles, floorPlanFile);
+  const totalMediaMB = (totalMediaBytes / (1024 * 1024)).toFixed(2);
+  const isOverSizeLimit = totalMediaBytes > MAX_PROJECT_MEDIA_BYTES;
+  const isNearSizeLimit = totalMediaBytes > 30 * 1024 * 1024 && !isOverSizeLimit;
 
   // Feedback banners
   const [submitting, setSubmitting] = useState(false);
@@ -182,6 +273,16 @@ export default function AdminDashboardPage() {
       setImageFile(file);
       const url = URL.createObjectURL(file);
       setImagePreview(url);
+
+      // Instant 40MB limit verification
+      const total = getTotalMediaBytes(file, galleryFiles, floorPlanFile);
+      if (total > MAX_PROJECT_MEDIA_BYTES) {
+        setFormError(
+          "Total image size for this project exceeds the 40MB limit. Please compress or select smaller images.",
+        );
+      } else if (formError?.includes("exceeds the 40MB limit")) {
+        setFormError(null);
+      }
     }
   }
 
@@ -194,6 +295,16 @@ export default function AdminDashboardPage() {
       galleryPreviews.forEach((url) => URL.revokeObjectURL(url));
       const previews = files.map((file) => URL.createObjectURL(file));
       setGalleryPreviews(previews);
+
+      // Instant 40MB limit verification
+      const total = getTotalMediaBytes(imageFile, files, floorPlanFile);
+      if (total > MAX_PROJECT_MEDIA_BYTES) {
+        setFormError(
+          "Total image size for this project exceeds the 40MB limit. Please compress or select smaller images.",
+        );
+      } else if (formError?.includes("exceeds the 40MB limit")) {
+        setFormError(null);
+      }
     }
   }
 
@@ -205,6 +316,11 @@ export default function AdminDashboardPage() {
       "project-gallery-input",
     ) as HTMLInputElement | null;
     if (galleryInput) galleryInput.value = "";
+
+    const total = getTotalMediaBytes(imageFile, [], floorPlanFile);
+    if (total <= MAX_PROJECT_MEDIA_BYTES && formError?.includes("exceeds the 40MB limit")) {
+      setFormError(null);
+    }
   }
 
   // Handle floor plan image selection & preview
@@ -216,6 +332,16 @@ export default function AdminDashboardPage() {
         URL.revokeObjectURL(floorPlanPreview);
       }
       setFloorPlanPreview(URL.createObjectURL(file));
+
+      // Instant 40MB limit verification
+      const total = getTotalMediaBytes(imageFile, galleryFiles, file);
+      if (total > MAX_PROJECT_MEDIA_BYTES) {
+        setFormError(
+          "Total image size for this project exceeds the 40MB limit. Please compress or select smaller images.",
+        );
+      } else if (formError?.includes("exceeds the 40MB limit")) {
+        setFormError(null);
+      }
     }
   }
 
@@ -229,6 +355,57 @@ export default function AdminDashboardPage() {
       "project-floor-plan-input",
     ) as HTMLInputElement | null;
     if (fpInput) fpInput.value = "";
+
+    const total = getTotalMediaBytes(imageFile, galleryFiles, null);
+    if (total <= MAX_PROJECT_MEDIA_BYTES && formError?.includes("exceeds the 40MB limit")) {
+      setFormError(null);
+    }
+  }
+
+  // Automatic client-side image compression helper
+  async function handleAutoCompressImages() {
+    setIsCompressing(true);
+    setFormError(null);
+    try {
+      let newImageFile = imageFile;
+      if (imageFile) {
+        newImageFile = await compressImageFile(imageFile);
+        if (imagePreview) URL.revokeObjectURL(imagePreview);
+        setImageFile(newImageFile);
+        setImagePreview(URL.createObjectURL(newImageFile));
+      }
+
+      const newGalleryFiles: File[] = [];
+      const newGalleryPreviews: string[] = [];
+      galleryPreviews.forEach((url) => URL.revokeObjectURL(url));
+      for (const gFile of galleryFiles) {
+        const compressed = await compressImageFile(gFile);
+        newGalleryFiles.push(compressed);
+        newGalleryPreviews.push(URL.createObjectURL(compressed));
+      }
+      setGalleryFiles(newGalleryFiles);
+      setGalleryPreviews(newGalleryPreviews);
+
+      let newFloorPlanFile = floorPlanFile;
+      if (floorPlanFile) {
+        newFloorPlanFile = await compressImageFile(floorPlanFile);
+        if (floorPlanPreview) URL.revokeObjectURL(floorPlanPreview);
+        setFloorPlanFile(newFloorPlanFile);
+        setFloorPlanPreview(URL.createObjectURL(newFloorPlanFile));
+      }
+
+      const newTotal = getTotalMediaBytes(newImageFile, newGalleryFiles, newFloorPlanFile);
+      if (newTotal <= MAX_PROJECT_MEDIA_BYTES) {
+        setFormSuccess(
+          `Images optimized successfully! Reduced total project media to ${(newTotal / (1024 * 1024)).toFixed(2)} MB.`,
+        );
+      }
+    } catch (err) {
+      console.error("Auto compression error:", err);
+      setFormError("Auto-compression failed. Please select smaller images.");
+    } finally {
+      setIsCompressing(false);
+    }
   }
 
   // Generate unique URL slug
@@ -250,6 +427,14 @@ export default function AdminDashboardPage() {
 
     if (!imageFile) {
       setFormError("Please select a primary main image for the property.");
+      return;
+    }
+
+    // Strict 40 MB Total Project Media Limit Validation
+    if (totalMediaBytes > MAX_PROJECT_MEDIA_BYTES) {
+      setFormError(
+        "Total image size for this project exceeds the 40MB limit. Please compress or select smaller images.",
+      );
       return;
     }
 
@@ -646,14 +831,108 @@ export default function AdminDashboardPage() {
                   />
                 </div>
 
+                {/* Project Media Storage Quota Bar & Warning */}
+                <div className="rounded-2xl border border-white/10 bg-slate-950/70 p-4 transition">
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-2">
+                      <HardDrive
+                        className={`h-4 w-4 ${
+                          isOverSizeLimit
+                            ? "text-red-400"
+                            : isNearSizeLimit
+                            ? "text-amber-400"
+                            : "text-sky-400"
+                        }`}
+                      />
+                      <span className="text-xs font-semibold uppercase tracking-wider text-slate-300">
+                        Project Media Storage
+                      </span>
+                    </div>
+                    <span
+                      className={`text-xs font-mono font-bold ${
+                        isOverSizeLimit
+                          ? "text-red-400"
+                          : isNearSizeLimit
+                          ? "text-amber-400"
+                          : "text-slate-300"
+                      }`}
+                    >
+                      {totalMediaMB} MB / 40.00 MB
+                    </span>
+                  </div>
+
+                  {/* Quota Progress Bar */}
+                  <div className="mt-2.5 h-1.5 w-full overflow-hidden rounded-full bg-slate-800">
+                    <div
+                      className={`h-full transition-all duration-300 ${
+                        isOverSizeLimit
+                          ? "bg-red-500"
+                          : isNearSizeLimit
+                          ? "bg-amber-400"
+                          : "bg-sky-400"
+                      }`}
+                      style={{
+                        width: `${Math.min(
+                          100,
+                          (totalMediaBytes / MAX_PROJECT_MEDIA_BYTES) * 100,
+                        )}%`,
+                      }}
+                    />
+                  </div>
+
+                  {/* Oversized batch warning & one-click optimization */}
+                  {isOverSizeLimit && (
+                    <div className="mt-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2 rounded-xl border border-red-500/30 bg-red-950/50 p-2.5 text-xs text-red-200">
+                      <div className="flex items-start gap-2">
+                        <AlertCircle className="h-4 w-4 shrink-0 text-red-400 mt-0.5" />
+                        <span>
+                          Total image size for this project exceeds the 40MB limit. Please compress or select smaller images.
+                        </span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={handleAutoCompressImages}
+                        disabled={isCompressing}
+                        className="inline-flex shrink-0 items-center justify-center gap-1.5 rounded-lg bg-red-500/25 px-2.5 py-1 text-xs font-semibold text-red-100 hover:bg-red-500/40 transition disabled:opacity-50"
+                      >
+                        {isCompressing ? (
+                          <>
+                            <RefreshCw className="h-3 w-3 animate-spin" />
+                            <span>Optimizing...</span>
+                          </>
+                        ) : (
+                          <>
+                            <Sparkles className="h-3 w-3 text-amber-300" />
+                            <span>Auto-Compress All</span>
+                          </>
+                        )}
+                      </button>
+                    </div>
+                  )}
+
+                  {!isOverSizeLimit && isNearSizeLimit && (
+                    <div className="mt-2.5 flex items-center gap-1.5 text-[11px] text-amber-300">
+                      <AlertCircle className="h-3.5 w-3.5 shrink-0 text-amber-400" />
+                      <span>Approaching 40MB limit ({totalMediaMB} MB / 40.00 MB used).</span>
+                    </div>
+                  )}
+                </div>
+
                 {/* Main Image Upload Input */}
                 <div>
-                  <label
-                    htmlFor="project-image-input"
-                    className="block text-xs font-semibold tracking-wider text-slate-300 uppercase"
-                  >
-                    Primary Main Image (Card Cover) *
-                  </label>
+                  <div className="flex items-center justify-between">
+                    <label
+                      htmlFor="project-image-input"
+                      className="block text-xs font-semibold tracking-wider text-slate-300 uppercase"
+                    >
+                      Primary Main Image (Card Cover) *
+                    </label>
+                    {imageFile && (
+                      <span className="text-[11px] font-mono text-sky-400">
+                        {(imageFile.size / (1024 * 1024)).toFixed(2)} MB
+                      </span>
+                    )}
+                  </div>
 
                   <div className="mt-1.5">
                     <label
@@ -705,15 +984,26 @@ export default function AdminDashboardPage() {
                     >
                       Gallery Slideshow Images (Optional)
                     </label>
-                    {galleryPreviews.length > 0 && (
-                      <button
-                        type="button"
-                        onClick={handleRemoveGallery}
-                        className="text-[0.7rem] font-semibold text-red-400 hover:text-red-300 transition"
-                      >
-                        Clear gallery ({galleryPreviews.length})
-                      </button>
-                    )}
+                    <div className="flex items-center gap-2">
+                      {galleryFiles.length > 0 && (
+                        <span className="text-[11px] font-mono text-amber-300">
+                          {(
+                            galleryFiles.reduce((acc, f) => acc + f.size, 0) /
+                            (1024 * 1024)
+                          ).toFixed(2)}{" "}
+                          MB
+                        </span>
+                      )}
+                      {galleryPreviews.length > 0 && (
+                        <button
+                          type="button"
+                          onClick={handleRemoveGallery}
+                          className="text-[0.7rem] font-semibold text-red-400 hover:text-red-300 transition"
+                        >
+                          Clear ({galleryPreviews.length})
+                        </button>
+                      )}
+                    </div>
                   </div>
 
                   <div className="mt-1.5">
@@ -774,15 +1064,22 @@ export default function AdminDashboardPage() {
                     >
                       Floor Plan Image (Optional - Bento Modal)
                     </label>
-                    {floorPlanPreview && (
-                      <button
-                        type="button"
-                        onClick={handleRemoveFloorPlan}
-                        className="text-[0.7rem] font-semibold text-red-400 hover:text-red-300 transition"
-                      >
-                        Remove floor plan
-                      </button>
-                    )}
+                    <div className="flex items-center gap-2">
+                      {floorPlanFile && (
+                        <span className="text-[11px] font-mono text-emerald-400">
+                          {(floorPlanFile.size / (1024 * 1024)).toFixed(2)} MB
+                        </span>
+                      )}
+                      {floorPlanPreview && (
+                        <button
+                          type="button"
+                          onClick={handleRemoveFloorPlan}
+                          className="text-[0.7rem] font-semibold text-red-400 hover:text-red-300 transition"
+                        >
+                          Remove
+                        </button>
+                      )}
+                    </div>
                   </div>
 
                   <div className="mt-1.5">
@@ -922,13 +1219,18 @@ export default function AdminDashboardPage() {
                 {/* Submit button */}
                 <button
                   type="submit"
-                  disabled={submitting}
+                  disabled={submitting || isCompressing}
                   className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-sky-400 to-cyan-400 py-3 text-sm font-bold text-slate-950 shadow-[0_0_24px_rgba(56,189,248,0.35)] transition hover:shadow-[0_0_36px_rgba(56,189,248,0.55)] hover:-translate-y-0.5 active:translate-y-0 disabled:pointer-events-none disabled:opacity-60"
                 >
                   {submitting ? (
                     <>
                       <div className="h-4 w-4 animate-spin rounded-full border-2 border-slate-950 border-t-transparent" />
                       <span>Uploading & Publishing...</span>
+                    </>
+                  ) : isCompressing ? (
+                    <>
+                      <RefreshCw className="h-4 w-4 animate-spin text-slate-950" />
+                      <span>Optimizing Media...</span>
                     </>
                   ) : (
                     <>
