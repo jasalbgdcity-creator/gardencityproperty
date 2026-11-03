@@ -124,7 +124,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
               "email": "info@gardencityproperties.net",
               "priceRange": "$$",
               "currenciesAccepted": "OMR",
-              "hasMap": "https://maps.app.goo.gl/tZ5U4GjpML5jncRw5",
+              "hasMap": "https://maps.app.goo.gl/SxfCYnRDrHg7BQjCA",
               "geo": {
                 "@type": "GeoCoordinates",
                 "latitude": 23.6143,

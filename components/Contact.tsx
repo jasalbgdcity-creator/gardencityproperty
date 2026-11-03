@@ -172,7 +172,7 @@ export default function Contact() {
               +968 99190404
             </a>
             <a
-              href="https://maps.app.goo.gl/tZ5U4GjpML5jncRw5"
+              href="https://maps.app.goo.gl/SxfCYnRDrHg7BQjCA"
               target="_blank"
               rel="noopener noreferrer"
               className="mt-4 flex items-start gap-3 rounded-2xl border border-white/10 bg-white/5 px-4 py-4 text-sm text-sky-200 transition hover:border-sky-400/40"

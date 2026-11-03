@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Mail, Phone } from "lucide-react";
+import { Mail, MapPin, Phone } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
 
 export default function Footer() {
@@ -105,6 +105,18 @@ export default function Footer() {
               {isAr ? "تواصل معنا" : "Get In Touch"}
             </h3>
             <div className="space-y-3 text-sm text-slate-400">
+              <a
+                href="https://maps.app.goo.gl/SxfCYnRDrHg7BQjCA"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-start gap-3 transition-colors hover:text-sky-400"
+              >
+                <MapPin className="h-4 w-4 shrink-0 text-sky-400 mt-0.5" />
+                <span className="leading-snug break-words">
+                  Office No 11, Po Box 275, Pc 117, Mawelah North, Sultanate Oman
+                </span>
+              </a>
+
               <a
                 href="tel:+96899190404"
                 className="flex items-center gap-3 transition-colors hover:text-sky-400"
