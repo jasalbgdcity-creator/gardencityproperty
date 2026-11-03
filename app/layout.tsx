@@ -120,7 +120,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
               "image": "https://www.gardencityproperties.net/Logo.jpeg",
               "logo": "https://www.gardencityproperties.net/Logo.jpeg",
               "description": "Leading real estate consultancy and brokerage in Oman.",
-              "telephone": "+9689495068217",
+              "telephone": "+96899190404",
               "email": "info@gardencityproperties.net",
               "priceRange": "$$",
               "currenciesAccepted": "OMR",

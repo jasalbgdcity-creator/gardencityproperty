@@ -165,11 +165,11 @@ export default function Contact() {
               info@gardencityproperties.net
             </a>
             <a
-              href="tel:+9689495068217"
+              href="tel:+96899190404"
               className="mt-4 flex items-center gap-3 rounded-2xl border border-white/10 bg-white/5 px-4 py-4 text-sm text-sky-200 transition hover:border-sky-400/40"
             >
               <Phone size={18} />
-              +968 9495068217
+              +968 99190404
             </a>
             <a
               href="https://maps.app.goo.gl/tZ5U4GjpML5jncRw5"

@@ -59,10 +59,10 @@ const dictionaries = {
               <p>Driven by professionalism, integrity, and a commitment to excellence, I strive to build lasting client relationships and establish Garden City Properties as a trusted name in Oman&apos;s real estate sector, creating sustainable long-term value for our clients and partners.</p>
             </>
           ),
-          email: "gardencityin@gmail.com",
+          email: "info@gardencityproperties.net",
           phone: "+968 97300200",
           phoneHref: "tel:+96897300200",
-          whatsappHref: undefined as string | undefined,
+          whatsappHref: "https://wa.me/message/ZL2BXWHCXFCXN1",
         },
         {
           src: "/GM.jpeg",
@@ -75,7 +75,7 @@ const dictionaries = {
               <p>Dedicated to fostering robust client relationships and upholding our standard of excellence, I work closely with our partners to navigate the evolving real estate landscape. My goal is to consistently exceed expectations and deliver sustainable growth across our entire portfolio.</p>
             </>
           ),
-          email: "gardencityin@gmail.com",
+          email: "info@gardencityproperties.net",
           phone: "+968 77304446",
           phoneHref: "tel:+96877304446",
           whatsappHref: "https://wa.me/message/7HZWGQYG6I5GC1",
@@ -209,10 +209,10 @@ const dictionaries = {
               <p>إن التزامي الراسخ بالمهنية والنزاهة والتميز يدفعني لبناء شراكات وثيقة ومستدامة، وترسيخ اسم جاردن سيتي بروبرتيز كشريك عقاري موثوق في سلطنة عمان يحقق قيمة حقيقية وطويلة الأجل.</p>
             </>
           ),
-          email: "gardencityin@gmail.com",
+          email: "info@gardencityproperties.net",
           phone: "+968 97300200",
           phoneHref: "tel:+96897300200",
-          whatsappHref: undefined as string | undefined,
+          whatsappHref: "https://wa.me/message/ZL2BXWHCXFCXN1",
         },
         {
           src: "/GM.jpeg",
@@ -225,7 +225,7 @@ const dictionaries = {
               <p>ملتزمون بترسيخ علاقات وطيدة مع العملاء ومواصلة التميز، وأعمل بالتعاون مع شركائنا لمواكبة تطورات المشهد العقاري، بهدف تجاوز التوقعات وتحقيق نمو مستدام ومستمر لمحفظتنا الاستثمارية.</p>
             </>
           ),
-          email: "gardencityin@gmail.com",
+          email: "info@gardencityproperties.net",
           phone: "+968 77304446",
           phoneHref: "tel:+96877304446",
           whatsappHref: "https://wa.me/message/7HZWGQYG6I5GC1",

@@ -115,11 +115,11 @@ export default function Footer() {
             </h3>
             <div className="space-y-3 text-sm text-slate-400">
               <a
-                href="tel:+9689495068217"
+                href="tel:+96899190404"
                 className="flex items-center gap-3 transition-colors hover:text-sky-400"
               >
                 <Phone className="h-4 w-4 shrink-0 text-sky-400" />
-                <span dir="ltr">+968 9495068217</span>
+                <span dir="ltr">+968 99190404</span>
               </a>
 
               <a
