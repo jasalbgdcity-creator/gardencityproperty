@@ -12,12 +12,12 @@ export default function Navbar() {
   const nav = dictionary.nav;
 
   const links = [
-    { href: "#home", label: nav.home },
-    { href: "#about", label: nav.about },
-    { href: "#projects", label: nav.projects },
-    { href: "#services", label: nav.services },
-    { href: "#values", label: language === "ar" ? "رؤيتنا" : "Why Us" },
-    { href: "#contact", label: nav.contact },
+    { href: `/${language}#home`, label: nav.home },
+    { href: `/${language}#about`, label: nav.about },
+    { href: `/${language}#projects`, label: nav.projects },
+    { href: `/${language}#services`, label: nav.services },
+    { href: `/${language}#values`, label: language === "ar" ? "رؤيتنا" : "Why Us" },
+    { href: `/${language}#contact`, label: nav.contact },
   ];
 
   return (
@@ -38,21 +38,21 @@ export default function Navbar() {
         {/* Desktop Navigation Links */}
         <div className="hidden md:flex items-center gap-3 lg:gap-6 xl:gap-8 shrink-0">
           {links.map((link) => (
-            <a
+            <Link
               key={link.href}
               href={link.href}
               className="text-xs lg:text-sm font-medium text-slate-300 transition hover:text-sky-300 whitespace-nowrap"
             >
               {link.label}
-            </a>
+            </Link>
           ))}
           <LanguageToggle language={language} onToggle={toggleLanguage} />
-          <a
-            href="#contact"
+          <Link
+            href={`/${language}#contact`}
             className="rounded-full bg-gradient-to-r from-sky-400 to-cyan-300 px-4 py-2 text-xs lg:px-5 lg:py-2.5 lg:text-sm font-semibold text-slate-950 shadow-[0_0_24px_rgba(56,189,248,0.35)] transition-all hover:shadow-[0_0_36px_rgba(56,189,248,0.55)] hover:-translate-y-0.5 active:translate-y-0 shrink-0"
           >
             {nav.getStarted}
-          </a>
+          </Link>
         </div>
 
         {/* Mobile Hamburger & Actions */}
@@ -74,22 +74,22 @@ export default function Navbar() {
         <div className="absolute top-full left-0 w-full bg-slate-950/95 backdrop-blur-xl flex flex-col p-6 z-40 border-b border-white/10 shadow-2xl md:hidden">
           <div className="flex flex-col gap-1">
             {links.map((link) => (
-              <a
+              <Link
                 key={link.href}
                 href={link.href}
                 onClick={() => setIsOpen(false)}
                 className="rounded-lg px-3 py-2.5 text-sm font-medium text-slate-200 transition hover:bg-white/5 hover:text-sky-300"
               >
                 {link.label}
-              </a>
+              </Link>
             ))}
-            <a
-              href="#contact"
+            <Link
+              href={`/${language}#contact`}
               onClick={() => setIsOpen(false)}
               className="mt-3 rounded-full bg-gradient-to-r from-sky-400 to-cyan-300 px-4 py-2.5 text-center text-sm font-semibold text-slate-950 shadow-[0_0_20px_rgba(56,189,248,0.35)]"
             >
               {nav.getStarted}
-            </a>
+            </Link>
           </div>
         </div>
       )}

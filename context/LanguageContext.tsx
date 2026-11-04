@@ -17,7 +17,7 @@ const dictionaries = {
   en: {
     nav: {
       home: "Home",
-      about: "About",
+      about: "About Us",
       services: "Services",
       projects: "Showcase",
       contact: "Contact",
@@ -25,7 +25,7 @@ const dictionaries = {
     },
     hero: {
       badge: "Oman · Consultancy · Assets",
-      title: "Gardencity properies your trusted realestate partner in oman",
+      title: "Garden City Propeties\nYour Trusted Partner In Real Estate Brokerage In Oman.",
       subtitle:
         "•property sales •Expert valuation's •Smarter Investments.",
       explore: "Explore Services",
@@ -33,8 +33,8 @@ const dictionaries = {
     },
     about: {
       eyebrow: "About Us",
-      title: "Gardencity properties.",
-      body: "Established in 2007, one of Oman’s trusted names in real estate valuation and consultancy, backed by a multidisciplinary team of engineers, surveyors, and property specialists Your Trusted Real Estate Partner in Oman.",
+      title: "GARDEN CITY PROPERTIES",
+      body: "Established in 2007, one of Oman’s trusted names in real estate brokerage, valuation and consultancy, backed by a multidisciplinary team of engineers, surveyors, and property specialists.",
       stats: [
         { value: "Oman", label: "Market focus" },
         { value: "360°", label: "Asset advisory" },
@@ -49,12 +49,12 @@ const dictionaries = {
       generalManager: "General Manager",
       leaders: [
         {
-          src: "/MD.jpg",
-          name: "MR MOHAMED AL HARTHY",
+          src: "/MD.PNG",
+          name: "MOHAMED AL HARTHY",
           title: "Managing Director",
           bio: (
             <>
-              <p>The Founder and Managing Director of GARDENCITY PROPERTIES Oman, I bring approximately 18 years of extensive professional experience in real estate brokerage, property management, asset valuation, and quantity surveying.</p>
+              <p>The Founder and Managing Director of GARDEN CITY PROPERTIES Oman, I bring approximately 18 years of extensive professional experience in real estate brokerage, property management, asset valuation, and quantity surveying.</p>
               <p>Drawing on nearly two decades of industry expertise and an in-depth understanding of the Omani real estate market, I founded Garden City Properties with a vision to deliver comprehensive, innovative, and reliable real estate solutions. My focus is on identifying strategic investment opportunities, maximising property value, and providing tailored services that meet the needs of individuals, investors, businesses, and financial institutions.</p>
               <p>Driven by professionalism, integrity, and a commitment to excellence, I strive to build lasting client relationships and establish Garden City Properties as a trusted name in Oman&apos;s real estate sector, creating sustainable long-term value for our clients and partners.</p>
             </>
@@ -66,11 +66,11 @@ const dictionaries = {
         },
         {
           src: "/GM.jpeg",
-          name: "MR ADAM AL HARTHY",
+          name: "ADAM AL HARTHY",
           title: "General Manager",
           bio: (
             <>
-              <p>As the General Manager of GARDENCITY PROPERTIES Oman, I oversee the daily operations and strategic execution across our core divisions, ensuring seamless delivery in property management, brokerage, and asset valuation.</p>
+              <p>As the General Manager of GARDEN CITY PROPERTIES Oman, I oversee the daily operations and strategic execution across our core divisions, ensuring seamless delivery in property management, brokerage, and asset valuation.</p>
               <p>With a strong foundation in the Omani property market, my focus is on translating our corporate vision into measurable success for our clients. I lead our dedicated team in implementing innovative solutions and operational best practices, ensuring that every transaction is handled with precision, transparency, and a deep commitment to maximizing returns for our diverse portfolio of investors.</p>
               <p>Dedicated to fostering robust client relationships and upholding our standard of excellence, I work closely with our partners to navigate the evolving real estate landscape. My goal is to consistently exceed expectations and deliver sustainable growth across our entire portfolio.</p>
             </>
@@ -199,7 +199,7 @@ const dictionaries = {
       generalManager: "المدير العام",
       leaders: [
         {
-          src: "/MD.jpg",
+          src: "/MD.PNG",
           name: "الفاضل محمد الحارثي",
           title: "العضو المنتدب",
           bio: (

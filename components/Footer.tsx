@@ -9,11 +9,11 @@ export default function Footer() {
   const isAr = language === "ar";
 
   const quickLinks = [
-    { href: "#home", label: isAr ? "الرئيسية" : "Home" },
-    { href: "#about", label: isAr ? "من نحن" : "About Us" },
-    { href: "#services", label: isAr ? "خدماتنا" : "Services" },
-    { href: "#projects", label: isAr ? "المشاريع" : "Showcase" },
-    { href: "#contact", label: isAr ? "تواصل معنا" : "Contact Us" },
+    { href: `/${language}#home`, label: isAr ? "الرئيسية" : "Home" },
+    { href: `/${language}#about`, label: isAr ? "من نحن" : "About Us" },
+    { href: `/${language}#services`, label: isAr ? "خدماتنا" : "Services" },
+    { href: `/${language}#projects`, label: isAr ? "المشاريع" : "Showcase" },
+    { href: `/${language}#contact`, label: isAr ? "تواصل معنا" : "Contact Us" },
   ];
 
   const socialLinks = [
@@ -65,7 +65,7 @@ export default function Footer() {
         <div className="grid grid-cols-1 gap-10 md:grid-cols-3 md:gap-12">
           {/* COLUMN 1: BRAND & ABOUT */}
           <div className="flex flex-col items-start">
-            <Link href="#home" className="inline-block focus:outline-none">
+            <Link href={`/${language}#home`} className="inline-block focus:outline-none">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src="/Logo.jpeg"

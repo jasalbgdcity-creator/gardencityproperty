@@ -14,11 +14,11 @@ export const viewport: Viewport = {
 export const metadata: Metadata = {
   title: {
     default:
-      "Garden City Properties | Trusted Real Estate & Property Consultants in Oman",
+      "Garden City Properties | Real Estate & Valuation Muscat Oman",
     template: "%s | Garden City Properties",
   },
   description:
-    "Oman's leading real estate consultancy offering expert property valuation, brokerage, management, and quantity surveying. Maximize your asset value with Garden City Properties.",
+    "Premier real estate consultancy, certified property valuation, and brokerage services in Muscat, Sultanate of Oman. Maximize your asset value.",
   keywords: [
     "real estate Oman",
     "property valuation Oman",
@@ -41,9 +41,9 @@ export const metadata: Metadata = {
   },
   openGraph: {
     title:
-      "Garden City Properties | Trusted Real Estate & Property Consultants in Oman",
+      "Garden City Properties | Real Estate & Valuation Muscat Oman",
     description:
-      "Oman's leading real estate consultancy offering expert property valuation, brokerage, management, and quantity surveying. Maximize your asset value with Garden City Properties.",
+      "Premier real estate consultancy, certified property valuation, and brokerage services in Muscat, Sultanate of Oman. Maximize your asset value.",
     url: "https://www.gardencityproperties.net",
     type: "website",
     locale: "en_OM",
@@ -54,24 +54,26 @@ export const metadata: Metadata = {
         url: "/Logo.jpeg",
         width: 1280,
         height: 532,
-        alt: "Garden City Properties | Trusted Real Estate & Property Consultants in Oman",
+        alt: "Garden City Properties | Real Estate & Valuation Muscat Oman",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
     title:
-      "Garden City Properties | Trusted Real Estate & Property Consultants in Oman",
+      "Garden City Properties | Real Estate & Valuation Muscat Oman",
     description:
-      "Oman's leading real estate consultancy offering expert property valuation, brokerage, management, and quantity surveying. Maximize your asset value with Garden City Properties.",
+      "Premier real estate consultancy, certified property valuation, and brokerage services in Muscat, Sultanate of Oman. Maximize your asset value.",
     images: ["/Logo.jpeg"],
   },
   icons: {
     icon: [
+      { url: "/favicon.ico", sizes: "any" },
       { url: "/icon.png", type: "image/png", sizes: "512x512" },
-      { url: "/icon.png", type: "image/png", sizes: "192x192" },
     ],
-    apple: [{ url: "/icon.png", sizes: "180x180", type: "image/png" }],
+    apple: [
+      { url: "/icon.png", sizes: "180x180", type: "image/png" },
+    ],
   },
   robots: {
     index: true,
@@ -95,9 +97,6 @@ export default function RootLayout({ children }: { children: ReactNode }) {
       className="dark h-full antialiased"
     >
       <head>
-        <link rel="icon" href="/icon.png" type="image/png" />
-        <link rel="shortcut icon" href="/icon.png" type="image/png" />
-        <link rel="apple-touch-icon" href="/icon.png" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link
           rel="preconnect"
@@ -109,57 +108,104 @@ export default function RootLayout({ children }: { children: ReactNode }) {
           rel="stylesheet"
         />
         <Script
-          id="json-ld-organization"
+          id="json-ld-organization-website"
           type="application/ld+json"
           dangerouslySetInnerHTML={{
             __html: JSON.stringify({
               "@context": "https://schema.org",
-              "@type": ["RealEstateAgent", "LocalBusiness"],
-              "name": "Garden City Properties",
-              "url": "https://www.gardencityproperties.net",
-              "image": "https://www.gardencityproperties.net/Logo.jpeg",
-              "logo": "https://www.gardencityproperties.net/Logo.jpeg",
-              "description": "Leading real estate consultancy and brokerage in Oman.",
-              "telephone": "+96899190404",
-              "email": "info@gardencityproperties.net",
-              "priceRange": "$$",
-              "currenciesAccepted": "OMR",
-              "hasMap": "https://maps.app.goo.gl/SxfCYnRDrHg7BQjCA",
-              "geo": {
-                "@type": "GeoCoordinates",
-                "latitude": 23.6143,
-                "longitude": 58.2567,
-              },
-              "openingHoursSpecification": [
+              "@graph": [
                 {
-                  "@type": "OpeningHoursSpecification",
-                  "dayOfWeek": [
-                    "Sunday",
-                    "Monday",
-                    "Tuesday",
-                    "Wednesday",
-                    "Thursday",
+                  "@type": ["Organization", "RealEstateAgent", "LocalBusiness"],
+                  "@id": "https://www.gardencityproperties.net/#organization",
+                  "name": "Garden City Properties",
+                  "alternateName": "جاردن سيتي بروبرتيز",
+                  "url": "https://www.gardencityproperties.net",
+                  "logo": {
+                    "@type": "ImageObject",
+                    "@id": "https://www.gardencityproperties.net/#logo",
+                    "url": "https://www.gardencityproperties.net/Logo.jpeg",
+                    "contentUrl": "https://www.gardencityproperties.net/Logo.jpeg",
+                    "caption": "Garden City Properties",
+                    "width": 1280,
+                    "height": 532,
+                  },
+                  "image": "https://www.gardencityproperties.net/Logo.jpeg",
+                  "description":
+                    "Premier real estate consultancy, certified property valuation, and brokerage services in Muscat, Sultanate of Oman.",
+                  "telephone": "+96899190404",
+                  "email": "info@gardencityproperties.net",
+                  "priceRange": "$$",
+                  "currenciesAccepted": "OMR",
+                  "hasMap": "https://maps.app.goo.gl/SxfCYnRDrHg7BQjCA",
+                  "geo": {
+                    "@type": "GeoCoordinates",
+                    "latitude": 23.6143,
+                    "longitude": 58.2567,
+                  },
+                  "openingHoursSpecification": [
+                    {
+                      "@type": "OpeningHoursSpecification",
+                      "dayOfWeek": [
+                        "Sunday",
+                        "Monday",
+                        "Tuesday",
+                        "Wednesday",
+                        "Thursday",
+                      ],
+                      "opens": "08:00",
+                      "closes": "17:00",
+                    },
                   ],
-                  "opens": "08:00",
-                  "closes": "17:00",
+                  "address": {
+                    "@type": "PostalAddress",
+                    "streetAddress": "Office No 11, Mawelah North",
+                    "addressLocality": "Muscat",
+                    "addressRegion": "Muscat Governorate",
+                    "addressCountry": "OM",
+                    "postalCode": "117",
+                    "postOfficeBoxNumber": "275",
+                  },
+                  "contactPoint": [
+                    {
+                      "@type": "ContactPoint",
+                      "telephone": "+96899190404",
+                      "contactType": "customer service",
+                      "areaServed": "OM",
+                      "availableLanguage": ["English", "Arabic"],
+                    },
+                  ],
+                  "founder": {
+                    "@type": "Person",
+                    "name": "MOHAMED AL HARTHY",
+                    "jobTitle": "Managing Director",
+                  },
+                  "areaServed": {
+                    "@type": "Country",
+                    "name": "Oman",
+                  },
+                },
+                {
+                  "@type": "WebSite",
+                  "@id": "https://www.gardencityproperties.net/#website",
+                  "url": "https://www.gardencityproperties.net",
+                  "name": "Garden City Properties",
+                  "description":
+                    "Premier real estate consultancy, certified property valuation, and brokerage services in Muscat, Sultanate of Oman.",
+                  "publisher": {
+                    "@id": "https://www.gardencityproperties.net/#organization",
+                  },
+                  "inLanguage": ["en-OM", "ar-OM"],
+                  "potentialAction": {
+                    "@type": "SearchAction",
+                    "target": {
+                      "@type": "EntryPoint",
+                      "urlTemplate":
+                        "https://www.gardencityproperties.net/en?search={search_term_string}",
+                    },
+                    "query-input": "required name=search_term_string",
+                  },
                 },
               ],
-              "address": {
-                "@type": "PostalAddress",
-                "streetAddress": "Office No 11, Mawelah North",
-                "addressLocality": "Muscat",
-                "addressCountry": "Oman",
-                "postalCode": "117",
-                "postOfficeBoxNumber": "275",
-              },
-              "founder": {
-                "@type": "Person",
-                "name": "Mohamed Al Harthy",
-              },
-              "areaServed": {
-                "@type": "Country",
-                "name": "Oman",
-              },
             }),
           }}
         />

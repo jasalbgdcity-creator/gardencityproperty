@@ -19,11 +19,11 @@ export async function generateMetadata({
 
   return {
     title: isAr
-      ? "جاردن سيتي بروبرتيز | شريكك العقاري الموثوق في سلطنة عمان"
-      : "Garden City Properties | Trusted Real Estate & Property Consultants in Oman",
+      ? "جاردن سيتي بروبرتيز | عقارات وتقييم أصول مسقط عمان"
+      : "Garden City Properties | Real Estate & Valuation Muscat Oman",
     description: isAr
-      ? "شركة الاستشارات العقارية الرائدة في سلطنة عمان. نقدم خدمات وساطة عقارية، تقييم أصول، وإدارة عقارات معتمدة لمساعدتك في تحقيق أهدافك الاستثمارية."
-      : "Oman's leading real estate consultancy offering expert property valuation, brokerage, management, and quantity surveying. Maximize your asset value with Garden City Properties.",
+      ? "استشارات عقارية رائدة وتقييم عقاري معتمد وخدمات وساطة في مسقط، سلطنة عمان. تعظيم قيمة أصولك العقارية."
+      : "Premier real estate consultancy, certified property valuation, and brokerage services in Muscat, Sultanate of Oman. Maximize your asset value.",
     metadataBase: new URL(baseUrl),
     alternates: {
       canonical: isAr ? `${baseUrl}/ar` : `${baseUrl}/en`,
@@ -35,11 +35,11 @@ export async function generateMetadata({
     },
     openGraph: {
       title: isAr
-        ? "جاردن سيتي بروبرتيز | شريكك العقاري الموثوق في سلطنة عمان"
-        : "Garden City Properties | Trusted Real Estate & Property Consultants in Oman",
+        ? "جاردن سيتي بروبرتيز | عقارات وتقييم أصول مسقط عمان"
+        : "Garden City Properties | Real Estate & Valuation Muscat Oman",
       description: isAr
-        ? "شركة الاستشارات العقارية الرائدة في سلطنة عمان. نقدم خدمات وساطة عقارية، تقييم أصول، وإدارة عقارات معتمدة."
-        : "Oman's leading real estate consultancy offering expert property valuation, brokerage, management, and quantity surveying.",
+        ? "استشارات عقارية رائدة وتقييم عقاري معتمد وخدمات وساطة في مسقط، سلطنة عمان. تعظيم قيمة أصولك العقارية."
+        : "Premier real estate consultancy, certified property valuation, and brokerage services in Muscat, Sultanate of Oman. Maximize your asset value.",
       url: isAr ? `${baseUrl}/ar` : `${baseUrl}/en`,
       type: "website",
       locale: isAr ? "ar_OM" : "en_OM",
@@ -57,11 +57,11 @@ export async function generateMetadata({
     twitter: {
       card: "summary_large_image",
       title: isAr
-        ? "جاردن سيتي بروبرتيز | شريكك العقاري الموثوق في سلطنة عمان"
-        : "Garden City Properties | Trusted Real Estate & Property Consultants in Oman",
+        ? "جاردن سيتي بروبرتيز | عقارات وتقييم أصول مسقط عمان"
+        : "Garden City Properties | Real Estate & Valuation Muscat Oman",
       description: isAr
-        ? "شركة الاستشارات العقارية الرائدة في سلطنة عمان. نقدم خدمات وساطة عقارية، تقييم أصول، وإدارة عقارات معتمدة."
-        : "Oman's leading real estate consultancy offering expert property valuation, brokerage, management, and quantity surveying.",
+        ? "استشارات عقارية رائدة وتقييم عقاري معتمد وخدمات وساطة في مسقط، سلطنة عمان. تعظيم قيمة أصولك العقارية."
+        : "Premier real estate consultancy, certified property valuation, and brokerage services in Muscat, Sultanate of Oman. Maximize your asset value.",
       images: ["/Logo.jpeg"],
     },
   };

@@ -42,7 +42,7 @@ export default function Hero() {
           initial={{ opacity: 0, y: 22 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.1 }}
-          className="max-w-4xl font-[family-name:var(--font-outfit)] text-4xl leading-tight font-semibold text-white sm:text-5xl lg:text-6xl"
+          className="max-w-4xl font-[family-name:var(--font-outfit)] text-4xl leading-tight font-semibold text-white sm:text-5xl lg:text-6xl whitespace-pre-line"
         >
           {copy.title}
         </motion.h1>

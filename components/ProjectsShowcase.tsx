@@ -55,15 +55,27 @@ export default function ProjectsShowcase() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [currentSlide, setCurrentSlide] = useState(0);
+  const [isHovered, setIsHovered] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   // Compute slide images for the modal
   const modalSlides: string[] = selectedProject
     ? selectedProject.gallery_urls && selectedProject.gallery_urls.length > 0
-      ? Array.from(new Set([selectedProject.image, ...selectedProject.gallery_urls]))
-      : [selectedProject.image]
+      ? Array.from(new Set([selectedProject.image, ...selectedProject.gallery_urls].filter(Boolean)))
+      : [selectedProject.image].filter(Boolean)
     : [];
+
+  // Automatic slideshow: transitions smoothly every 2 seconds
+  useEffect(() => {
+    if (!selectedProject || modalSlides.length <= 1 || isHovered) return;
+
+    const interval = setInterval(() => {
+      setCurrentSlide((prev) => (prev + 1) % modalSlides.length);
+    }, 2000);
+
+    return () => clearInterval(interval);
+  }, [selectedProject, modalSlides.length, isHovered]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -438,15 +450,34 @@ export default function ProjectsShowcase() {
                   </p>
                 </div>
 
-                {/* Main Visual Image (with slideshow support if gallery exists) */}
-                <div className="relative mt-4 h-72 sm:h-80 lg:h-[390px] w-full shrink-0 overflow-hidden rounded-2xl bg-slate-950 border border-white/10 shadow-lg select-none">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    key={modalSlides[currentSlide] || selectedProject.image}
-                    src={modalSlides[currentSlide] || selectedProject.image}
-                    alt={`${selectedProject.name} - View ${currentSlide + 1}`}
-                    className="h-full w-full object-cover transition-opacity duration-300"
-                  />
+                {/* Main Visual Image (with automatic smooth slideshow support) */}
+                <div
+                  onMouseEnter={() => setIsHovered(true)}
+                  onMouseLeave={() => setIsHovered(false)}
+                  className="relative mt-4 h-72 sm:h-80 lg:h-[390px] w-full shrink-0 overflow-hidden rounded-2xl bg-slate-950 border border-white/10 shadow-lg select-none"
+                >
+                  {modalSlides.length > 0 ? (
+                    modalSlides.map((slideUrl, idx) => (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        key={slideUrl + idx}
+                        src={slideUrl}
+                        alt={`${selectedProject.name} - View ${idx + 1}`}
+                        className={`absolute inset-0 h-full w-full object-cover transition-opacity duration-700 ease-in-out ${
+                          idx === currentSlide
+                            ? "opacity-100 z-10"
+                            : "opacity-0 z-0 pointer-events-none"
+                        }`}
+                      />
+                    ))
+                  ) : (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={selectedProject.image}
+                      alt={selectedProject.name}
+                      className="h-full w-full object-cover"
+                    />
+                  )}
 
                   {/* Absolute White "Location" Badge Overlapping Bottom-Left */}
                   <div className="absolute bottom-4 left-4 z-20 flex items-center gap-2 rounded-xl bg-white px-3.5 py-2 text-xs font-bold text-slate-950 shadow-2xl backdrop-blur-md">
