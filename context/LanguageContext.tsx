@@ -25,9 +25,8 @@ const dictionaries = {
     },
     hero: {
       badge: "Oman · Consultancy · Assets",
-      title: "Garden City Propeties\nYour Trusted Partner In Real Estate Brokerage In Oman.",
-      subtitle:
-        "•property sales •Expert valuation's •Smarter Investments.",
+      title: "Garden City Properties",
+      subtitle: "Your Trusted Partner in Real Estate Brokerage in Oman.",
       explore: "Explore Services",
       contact: "Contact Us",
     },
