@@ -105,8 +105,8 @@ export async function POST(req: NextRequest) {
     // Try extracting coordinates from the final resolved URL
     const coords = extractCoordinatesFromUrl(resolvedUrl) || extractCoordinatesFromUrl(rawUrl);
 
-    let latitude = coords?.lat ?? null;
-    let longitude = coords?.lng ?? null;
+    const latitude = coords?.lat ?? null;
+    const longitude = coords?.lng ?? null;
     let formattedAddress = "";
     let city = "Muscat";
     let country = "Oman";

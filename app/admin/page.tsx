@@ -272,6 +272,7 @@ export interface PropertyConfiguration {
   furnishing?: string;
   parking?: string;
   floor_plan_url?: string;
+  image_url?: string;
   images?: string[];
   is_featured?: boolean;
   display_order?: number;
@@ -609,6 +610,9 @@ export default function AdminDashboardPage() {
   const [configurations, setConfigurations] = useState<PropertyConfiguration[]>([]);
   const [editingConfigIndex, setEditingConfigIndex] = useState<number | null>(null);
   const [isConfigModalOpen, setIsConfigModalOpen] = useState(false);
+  const [isUploadingConfigImage, setIsUploadingConfigImage] = useState(false);
+  const [isUploadingConfigGallery, setIsUploadingConfigGallery] = useState(false);
+  const [configMediaError, setConfigMediaError] = useState<string | null>(null);
   const [currentConfig, setCurrentConfig] = useState<PropertyConfiguration>({
     id: "",
     property_type: "Apartment",
@@ -628,6 +632,8 @@ export default function AdminDashboardPage() {
     furnishing: "Unfurnished",
     parking: "1 Dedicated Space",
     floor_plan_url: "",
+    image_url: "",
+    images: [],
     is_featured: false,
   });
 
@@ -888,6 +894,18 @@ export default function AdminDashboardPage() {
         "Total media size for this project exceeds the 40MB limit. Please compress or select smaller images.",
       );
     }
+    e.target.value = "";
+  }
+
+  function handleRemoveCoverImage() {
+    if (imagePreview && !imagePreview.startsWith("http")) {
+      URL.revokeObjectURL(imagePreview);
+    }
+    setImageFile(null);
+    setImagePreview(null);
+    setExistingImageUrl(null);
+    const coverInput = document.getElementById("project-image-input") as HTMLInputElement | null;
+    if (coverInput) coverInput.value = "";
   }
 
   // Handle gallery selection
@@ -979,6 +997,10 @@ export default function AdminDashboardPage() {
     setExistingGalleryUrls((prev) => prev.filter((_, i) => i !== index));
   }
 
+  function handleRemoveAllExistingGallery() {
+    setExistingGalleryUrls([]);
+  }
+
   function handleRemoveAllGallery() {
     galleryItems.forEach((item) => URL.revokeObjectURL(item.previewUrl));
     setGalleryItems([]);
@@ -1016,6 +1038,7 @@ export default function AdminDashboardPage() {
         "Total media size for this project exceeds the 40MB limit. Please compress or select smaller images.",
       );
     }
+    e.target.value = "";
   }
 
   function handleRemoveFloorPlan() {
@@ -1193,6 +1216,7 @@ export default function AdminDashboardPage() {
   // Configuration Modal & Item Management
   function handleOpenNewConfigModal() {
     setEditingConfigIndex(null);
+    setConfigMediaError(null);
     setCurrentConfig({
       id: `conf-${Date.now()}`,
       property_type: "Apartment",
@@ -1212,6 +1236,8 @@ export default function AdminDashboardPage() {
       furnishing: "Unfurnished",
       parking: "1 Dedicated Space",
       floor_plan_url: "",
+      image_url: "",
+      images: [],
       is_featured: false,
     });
     setIsConfigModalOpen(true);
@@ -1219,8 +1245,170 @@ export default function AdminDashboardPage() {
 
   function handleEditConfig(index: number) {
     setEditingConfigIndex(index);
-    setCurrentConfig(configurations[index]);
+    setConfigMediaError(null);
+    const existing = configurations[index];
+    const existingPrimary = existing.image_url || (Array.isArray(existing.images) && existing.images.length > 0 ? existing.images[0] : "");
+    const existingImages = Array.isArray(existing.images) ? existing.images : (existingPrimary ? [existingPrimary] : []);
+    setCurrentConfig({
+      ...existing,
+      image_url: existingPrimary,
+      images: existingImages,
+    });
     setIsConfigModalOpen(true);
+  }
+
+  async function handleConfigMainImageUpload(e: ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setConfigMediaError(null);
+    setIsUploadingConfigImage(true);
+
+    try {
+      const validation = await detectFileFormat(file);
+      if (!validation.isValid) {
+        throw new Error(validation.errorMessage || "Image format is not supported.");
+      }
+
+      const compressed = await compressImageFile(file, 1920, 0.85);
+      const isWebP = compressed.type === "image/webp";
+      const contentType = isWebP ? "image/webp" : getNormalizedContentType(compressed, validation.detectedMime);
+      const ext = isWebP ? "webp" : validation.normalizedExt;
+
+      const projectSlug = editingProjectId
+        ? editingProjectId
+        : customSlug.trim()
+        ? customSlug.trim().toLowerCase()
+        : generateSlug(name) || "project";
+      const configId = currentConfig.id || `conf-${Date.now()}`;
+      const storagePath = `configurations/${projectSlug}/${configId}/cover-${Date.now()}.${ext}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from("property-images")
+        .upload(storagePath, compressed, {
+          contentType,
+          cacheControl: "3600",
+          upsert: true,
+        });
+
+      if (uploadError) {
+        throw new Error(`Upload failed: ${uploadError.message}`);
+      }
+
+      const { data: publicUrlData } = supabase.storage
+        .from("property-images")
+        .getPublicUrl(storagePath);
+
+      if (!publicUrlData?.publicUrl) {
+        throw new Error("Failed to generate public URL for configuration image.");
+      }
+
+      const publicUrl = publicUrlData.publicUrl;
+      setCurrentConfig((prev) => {
+        const prevImages = Array.isArray(prev.images) ? prev.images : [];
+        const updatedImages = prevImages.length === 0 ? [publicUrl] : prevImages;
+        return {
+          ...prev,
+          image_url: publicUrl,
+          images: updatedImages,
+        };
+      });
+    } catch (err: unknown) {
+      console.error("Configuration image upload failed:", err);
+      setConfigMediaError(err instanceof Error ? err.message : "Failed to upload image.");
+    } finally {
+      setIsUploadingConfigImage(false);
+      e.target.value = "";
+    }
+  }
+
+  async function handleConfigGalleryUpload(e: ChangeEvent<HTMLInputElement>) {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    setConfigMediaError(null);
+    setIsUploadingConfigGallery(true);
+
+    try {
+      const projectSlug = editingProjectId
+        ? editingProjectId
+        : customSlug.trim()
+        ? customSlug.trim().toLowerCase()
+        : generateSlug(name) || "project";
+      const configId = currentConfig.id || `conf-${Date.now()}`;
+      const newUrls: string[] = [];
+
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        const validation = await detectFileFormat(file);
+        if (!validation.isValid) {
+          throw new Error(`"${file.name}" rejected: ${validation.errorMessage}`);
+        }
+
+        const compressed = await compressImageFile(file, 1920, 0.85);
+        const isWebP = compressed.type === "image/webp";
+        const contentType = isWebP ? "image/webp" : getNormalizedContentType(compressed, validation.detectedMime);
+        const ext = isWebP ? "webp" : validation.normalizedExt;
+        const storagePath = `configurations/${projectSlug}/${configId}/gallery-${Date.now()}-${i + 1}.${ext}`;
+
+        const { error: uploadErr } = await supabase.storage
+          .from("property-images")
+          .upload(storagePath, compressed, {
+            contentType,
+            cacheControl: "3600",
+            upsert: true,
+          });
+
+        if (uploadErr) {
+          throw new Error(`Failed to upload ${file.name}: ${uploadErr.message}`);
+        }
+
+        const { data: urlData } = supabase.storage
+          .from("property-images")
+          .getPublicUrl(storagePath);
+
+        if (urlData?.publicUrl) {
+          newUrls.push(urlData.publicUrl);
+        }
+      }
+
+      setCurrentConfig((prev) => {
+        const prevImages = Array.isArray(prev.images) ? prev.images : [];
+        const mergedImages = [...prevImages, ...newUrls];
+        return {
+          ...prev,
+          image_url: prev.image_url || mergedImages[0] || "",
+          images: mergedImages,
+        };
+      });
+    } catch (err: unknown) {
+      console.error("Configuration gallery upload failed:", err);
+      setConfigMediaError(err instanceof Error ? err.message : "Failed to upload gallery images.");
+    } finally {
+      setIsUploadingConfigGallery(false);
+      e.target.value = "";
+    }
+  }
+
+  function handleRemoveConfigGalleryImage(index: number) {
+    setCurrentConfig((prev) => {
+      const prevImages = Array.isArray(prev.images) ? [...prev.images] : [];
+      const removedUrl = prevImages[index];
+      prevImages.splice(index, 1);
+      const newPrimary = prev.image_url === removedUrl ? (prevImages[0] || "") : prev.image_url;
+      return {
+        ...prev,
+        image_url: newPrimary,
+        images: prevImages,
+      };
+    });
+  }
+
+  function handleRemoveConfigCoverImage() {
+    setCurrentConfig((prev) => ({
+      ...prev,
+      image_url: "",
+    }));
   }
 
   function handleSaveConfig() {
@@ -1902,6 +2090,7 @@ export default function AdminDashboardPage() {
           furnishing: String(c.furnishing_status || c.furnishing || "Unfurnished"),
           parking: typeof c.parking_info === "string" ? c.parking_info : undefined,
           floor_plan_url: typeof c.floor_plan_url === "string" ? c.floor_plan_url : undefined,
+          image_url: typeof c.image_url === "string" ? c.image_url : (Array.isArray(c.images) && c.images.length > 0 ? String(c.images[0]) : undefined),
           images: Array.isArray(c.images) ? (c.images as string[]) : [],
           is_featured: Boolean(c.is_featured),
         }));
@@ -2054,8 +2243,9 @@ export default function AdminDashboardPage() {
         }
 
         const processedMain = await compressImageFile(imageFile);
-        const mainContentType = getNormalizedContentType(processedMain, mainValidation.detectedMime);
-        const mainExt = mainValidation.normalizedExt;
+        const isWebP = processedMain.type === "image/webp";
+        const mainContentType = isWebP ? "image/webp" : getNormalizedContentType(processedMain, mainValidation.detectedMime);
+        const mainExt = isWebP ? "webp" : mainValidation.normalizedExt;
         const mainStoragePath = `properties/${slug}-${Date.now()}.${mainExt}`;
 
         const { error: uploadError } = await supabase.storage
@@ -2073,6 +2263,10 @@ export default function AdminDashboardPage() {
         const { data: publicUrlData } = supabase.storage
           .from("property-images")
           .getPublicUrl(mainStoragePath);
+
+        if (!publicUrlData?.publicUrl) {
+          throw new Error("Failed to generate public URL for main cover image.");
+        }
         publicImageUrl = publicUrlData.publicUrl;
       }
 
@@ -2095,8 +2289,9 @@ export default function AdminDashboardPage() {
         }
 
         const processedGFile = await compressImageFile(item.file);
-        const gContentType = getNormalizedContentType(processedGFile, validation.detectedMime);
-        const gExt = validation.normalizedExt;
+        const isWebP = processedGFile.type === "image/webp";
+        const gContentType = isWebP ? "image/webp" : getNormalizedContentType(processedGFile, validation.detectedMime);
+        const gExt = isWebP ? "webp" : validation.normalizedExt;
         const gPath = `properties/${slug}-gallery-${Date.now()}-${i + 1}.${gExt}`;
 
         const { error: gUploadErr } = await supabase.storage
@@ -2108,7 +2303,7 @@ export default function AdminDashboardPage() {
           });
 
         if (gUploadErr) {
-          throw new Error(`Gallery upload failed for "${item.name}": ${gUploadErr.message}`);
+          throw new Error(`Gallery upload failed for "${item.name}" (${i + 1}/${galleryItems.length}): ${gUploadErr.message}`);
         }
 
         const { data: gUrlData } = supabase.storage
@@ -2117,6 +2312,8 @@ export default function AdminDashboardPage() {
 
         if (gUrlData?.publicUrl) {
           newlyUploadedUrls.push(gUrlData.publicUrl);
+        } else {
+          throw new Error(`Failed to generate public URL for gallery photo "${item.name}".`);
         }
       }
 
@@ -2139,8 +2336,9 @@ export default function AdminDashboardPage() {
         }
 
         const processedFpFile = await compressImageFile(floorPlanFile);
-        const fpContentType = getNormalizedContentType(processedFpFile, fpValidation.detectedMime);
-        const fpExt = fpValidation.normalizedExt;
+        const isWebP = processedFpFile.type === "image/webp";
+        const fpContentType = isWebP ? "image/webp" : getNormalizedContentType(processedFpFile, fpValidation.detectedMime);
+        const fpExt = isWebP ? "webp" : fpValidation.normalizedExt;
         const fpPath = `properties/${slug}-floorplan-${Date.now()}.${fpExt}`;
 
         const { error: fpUploadErr } = await supabase.storage
@@ -2182,6 +2380,7 @@ export default function AdminDashboardPage() {
         type: type.trim() || "Luxury Residential",
         structure: structure.trim() || null,
         description: description.trim() || null,
+        updated_at: new Date().toISOString(),
       };
 
       const richPayload: Record<string, unknown> = {
@@ -2279,6 +2478,8 @@ export default function AdminDashboardPage() {
             furnishing_status: c.furnishing || "Unfurnished",
             parking_info: c.parking || null,
             floor_plan_url: c.floor_plan_url || null,
+            image_url: c.image_url || (Array.isArray(c.images) && c.images.length > 0 ? c.images[0] : null),
+            images: Array.isArray(c.images) && c.images.length > 0 ? c.images : (c.image_url ? [c.image_url] : []),
             is_featured: Boolean(c.is_featured),
             display_order: idx + 1,
           }));
@@ -2364,10 +2565,33 @@ export default function AdminDashboardPage() {
 
       setFormSuccess(
         isEdit
-          ? `Successfully updated "${name}" and synchronized configurations!`
+          ? `Successfully updated "${name}" and synchronized all media & configurations!`
           : `Successfully published "${name}" to the portfolio!`,
       );
-      handleCancelEdit();
+
+      // Keep administrator in edit mode for this project — DO NOT reset form!
+      setEditingProjectId(slug);
+      setCustomSlug(slug);
+      setExistingImageUrl(publicImageUrl);
+      setImagePreview(publicImageUrl);
+      setImageFile(null);
+
+      setExistingGalleryUrls(finalGalleryUrls);
+      galleryItems.forEach((item) => URL.revokeObjectURL(item.previewUrl));
+      setGalleryItems([]);
+
+      setExistingFloorPlanUrl(floorPlanUrl);
+      setFloorPlanPreview(floorPlanUrl);
+      setFloorPlanFile(null);
+
+      // Reset DOM file input values so user can immediately select new files if desired
+      const coverInput = document.getElementById("project-image-input") as HTMLInputElement | null;
+      if (coverInput) coverInput.value = "";
+      const galleryInput = document.getElementById("project-gallery-input") as HTMLInputElement | null;
+      if (galleryInput) galleryInput.value = "";
+      const fpInput = document.getElementById("project-floor-plan-input") as HTMLInputElement | null;
+      if (fpInput) fpInput.value = "";
+
       await fetchProjects();
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Failed to save project.";
@@ -2544,14 +2768,25 @@ export default function AdminDashboardPage() {
                 </div>
 
                 {editingProjectId && (
-                  <button
-                    type="button"
-                    onClick={handleCancelEdit}
-                    className="flex items-center gap-1 text-xs font-semibold text-slate-400 hover:text-white transition"
-                  >
-                    <X className="h-3.5 w-3.5" />
-                    <span>Cancel Edit</span>
-                  </button>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={handleCancelEdit}
+                      className="flex items-center gap-1.5 rounded-xl border border-sky-400/30 bg-sky-500/10 px-3 py-1.5 text-xs font-semibold text-sky-300 hover:bg-sky-500/20 transition"
+                      title="Switch to creating a new project"
+                    >
+                      <Plus className="h-3.5 w-3.5" />
+                      <span>New Development</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleCancelEdit}
+                      className="flex items-center gap-1 text-xs font-semibold text-slate-400 hover:text-white transition"
+                    >
+                      <X className="h-3.5 w-3.5" />
+                      <span>Cancel</span>
+                    </button>
+                  </div>
                 )}
               </div>
 
@@ -2799,6 +3034,26 @@ export default function AdminDashboardPage() {
                             <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-white/5 font-mono text-xs font-bold text-slate-400">
                               {idx + 1}
                             </span>
+                            <div className="relative h-14 w-20 shrink-0 overflow-hidden rounded-lg border border-white/10 bg-slate-950">
+                              {conf.image_url || (Array.isArray(conf.images) && conf.images.length > 0) ? (
+                                // eslint-disable-next-line @next/next/no-img-element
+                                <img
+                                  src={conf.image_url || conf.images![0]}
+                                  alt={conf.name}
+                                  className="h-full w-full object-cover"
+                                />
+                              ) : (
+                                <div className="flex h-full w-full flex-col items-center justify-center text-slate-600 bg-white/5">
+                                  <ImageIcon className="h-4 w-4 text-slate-500" />
+                                  <span className="text-[8px] text-slate-500 font-medium">No Image</span>
+                                </div>
+                              )}
+                              {Array.isArray(conf.images) && conf.images.length > 1 && (
+                                <span className="absolute bottom-1 right-1 rounded bg-black/80 px-1 py-0.2 text-[8px] font-bold text-sky-300">
+                                  +{conf.images.length - 1}
+                                </span>
+                              )}
+                            </div>
                             <div>
                               <div className="flex items-center gap-2">
                                 <span className="font-bold text-white text-xs sm:text-sm">{conf.name}</span>
@@ -3654,7 +3909,19 @@ export default function AdminDashboardPage() {
 
                   {/* Primary Cover Image */}
                   <div id="sec-media-cover">
-                    <label className="block text-xs font-semibold text-slate-300 uppercase">Primary Cover Image *</label>
+                    <div className="flex items-center justify-between mb-1.5">
+                      <label className="block text-xs font-semibold text-slate-300 uppercase">Primary Cover Image *</label>
+                      {imagePreview && (
+                        <button
+                          type="button"
+                          onClick={handleRemoveCoverImage}
+                          className="text-[11px] font-semibold text-rose-400 hover:text-rose-300 transition flex items-center gap-1"
+                        >
+                          <Trash2 className="h-3 w-3" />
+                          <span>Remove Cover</span>
+                        </button>
+                      )}
+                    </div>
                     <div className="mt-1.5">
                       <label
                         htmlFor="project-image-input"
@@ -3685,6 +3952,12 @@ export default function AdminDashboardPage() {
                           className="hidden"
                         />
                       </label>
+                      {imageFile && (
+                        <p className="mt-1.5 text-[11px] font-medium text-emerald-400 flex items-center gap-1">
+                          <CheckCircle2 className="h-3 w-3" />
+                          <span>New cover selected: {imageFile.name} (will upload on save)</span>
+                        </p>
+                      )}
                     </div>
                   </div>
 
@@ -3706,10 +3979,24 @@ export default function AdminDashboardPage() {
                     {/* Existing Saved Gallery Images (Edit Mode) */}
                     {editingProjectId && existingGalleryUrls.length > 0 && (
                       <div className="mb-3 rounded-xl border border-white/10 bg-slate-900/60 p-3">
-                        <span className="text-[10px] font-semibold text-amber-300 uppercase tracking-wider block mb-2">
-                          Existing Saved Images ({existingGalleryUrls.length})
-                        </span>
-                        <div className="grid grid-cols-4 gap-2">
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="text-[10px] font-semibold text-amber-300 uppercase tracking-wider block">
+                            Existing Saved Images ({existingGalleryUrls.length})
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              if (window.confirm("Remove all existing gallery images from this project? You can add fresh ones below.")) {
+                                handleRemoveAllExistingGallery();
+                              }
+                            }}
+                            className="text-[10px] font-semibold text-rose-400 hover:text-rose-300 transition flex items-center gap-1"
+                          >
+                            <Trash2 className="h-3 w-3" />
+                            <span>Remove All Existing</span>
+                          </button>
+                        </div>
+                        <div className="grid grid-cols-4 sm:grid-cols-6 gap-2">
                           {existingGalleryUrls.map((url, idx) => (
                             <div key={idx} className="group relative h-16 rounded-lg overflow-hidden border border-white/10">
                               {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -3717,7 +4004,7 @@ export default function AdminDashboardPage() {
                               <button
                                 type="button"
                                 onClick={() => handleRemoveSingleExistingGalleryUrl(idx)}
-                                className="absolute top-1 right-1 flex h-5 w-5 items-center justify-center rounded-full bg-red-600 text-white"
+                                className="absolute top-1 right-1 flex h-5 w-5 items-center justify-center rounded-full bg-red-600/90 text-white hover:bg-red-500 shadow-md transition"
                                 title="Remove photo"
                               >
                                 <X className="h-3 w-3" />
@@ -4206,7 +4493,153 @@ export default function AdminDashboardPage() {
               </button>
             </div>
 
-            <div className="mt-6 space-y-4">
+            <div className="mt-6 space-y-5">
+              {/* Configuration Photography & Media */}
+              <div className="rounded-2xl border border-sky-400/20 bg-slate-950/80 p-4 space-y-4">
+                <div className="flex items-center justify-between pb-2 border-b border-white/10">
+                  <div className="flex items-center gap-2">
+                    <ImageIcon className="h-4 w-4 text-sky-400" />
+                    <span className="text-xs font-bold uppercase tracking-wider text-white">Unit Photography & Media</span>
+                  </div>
+                  <span className="text-[10px] text-slate-400">Primary Render / Interior Photo + Gallery</span>
+                </div>
+
+                {configMediaError && (
+                  <div className="flex items-center gap-2 rounded-xl border border-red-500/30 bg-red-500/10 p-2.5 text-xs text-red-300">
+                    <AlertCircle className="h-4 w-4 shrink-0 text-red-400" />
+                    <span>{configMediaError}</span>
+                  </div>
+                )}
+
+                {/* Main Cover Image */}
+                <div>
+                  <label className="block text-xs font-semibold text-slate-300 uppercase mb-1.5">
+                    Main Unit Cover Photo (JPG, PNG, WebP)
+                  </label>
+                  {currentConfig.image_url ? (
+                    <div className="relative overflow-hidden rounded-xl border border-sky-400/30 bg-slate-900 group">
+                      <div className="relative h-44 w-full">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={currentConfig.image_url}
+                          alt="Configuration Cover"
+                          className="h-full w-full object-cover"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent" />
+                        <span className="absolute top-2 left-2 rounded bg-sky-500/80 px-2 py-0.5 text-[10px] font-bold text-white shadow">
+                          Main Cover Photo
+                        </span>
+                        <div className="absolute bottom-2 right-2 flex items-center gap-2">
+                          <label className="cursor-pointer inline-flex items-center gap-1.5 rounded-lg bg-sky-500/20 border border-sky-400/30 px-2.5 py-1 text-xs font-semibold text-sky-300 backdrop-blur hover:bg-sky-500/30 transition">
+                            <Upload className="h-3 w-3" />
+                            <span>{isUploadingConfigImage ? "Uploading..." : "Replace Photo"}</span>
+                            <input
+                              type="file"
+                              accept="image/jpeg,image/png,image/webp"
+                              className="hidden"
+                              disabled={isUploadingConfigImage}
+                              onChange={handleConfigMainImageUpload}
+                            />
+                          </label>
+                          <button
+                            type="button"
+                            onClick={handleRemoveConfigCoverImage}
+                            className="inline-flex items-center gap-1 rounded-lg bg-red-500/20 border border-red-400/30 px-2.5 py-1 text-xs font-semibold text-red-300 backdrop-blur hover:bg-red-500/30 transition"
+                          >
+                            <Trash2 className="h-3 w-3" />
+                            <span>Remove</span>
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <label className={`flex flex-col items-center justify-center rounded-xl border-2 border-dashed border-sky-400/30 bg-sky-500/5 p-6 text-center cursor-pointer hover:border-sky-400/60 transition ${isUploadingConfigImage ? "opacity-60 pointer-events-none" : ""}`}>
+                      {isUploadingConfigImage ? (
+                        <div className="flex flex-col items-center py-2">
+                          <Loader2 className="h-7 w-7 animate-spin text-sky-400 mb-2" />
+                          <span className="text-xs font-semibold text-sky-300">Uploading to Supabase Storage...</span>
+                        </div>
+                      ) : (
+                        <>
+                          <UploadCloud className="h-8 w-8 text-sky-400 mb-2" />
+                          <span className="text-xs font-bold text-white">Click or Drag to Upload Unit Cover Photo</span>
+                          <span className="text-[11px] text-slate-400 mt-0.5">High-res exterior render or luxury interior photo (WebP optimized)</span>
+                        </>
+                      )}
+                      <input
+                        type="file"
+                        accept="image/jpeg,image/png,image/webp"
+                        className="hidden"
+                        disabled={isUploadingConfigImage}
+                        onChange={handleConfigMainImageUpload}
+                      />
+                    </label>
+                  )}
+
+                  {/* Direct URL input fallback */}
+                  <div className="mt-2 flex items-center gap-2">
+                    <input
+                      type="url"
+                      value={currentConfig.image_url || ""}
+                      onChange={(e) => setCurrentConfig({ ...currentConfig, image_url: e.target.value })}
+                      placeholder="Or paste direct image URL (https://...)"
+                      className="w-full rounded-lg border border-white/10 bg-slate-950 px-3 py-1.5 text-xs text-white placeholder-slate-500 focus:outline-none"
+                    />
+                  </div>
+                </div>
+
+                {/* Additional Gallery Photos */}
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <label className="text-xs font-semibold text-slate-300 uppercase">
+                      Additional Gallery Photos (Living, Master Bedroom, Terrace, etc.)
+                    </label>
+                    <label className="cursor-pointer inline-flex items-center gap-1 rounded bg-sky-500/15 border border-sky-400/30 px-2.5 py-1 text-[11px] font-semibold text-sky-300 hover:bg-sky-500/30 transition">
+                      {isUploadingConfigGallery ? (
+                        <Loader2 className="h-3 w-3 animate-spin text-sky-400" />
+                      ) : (
+                        <Plus className="h-3 w-3" />
+                      )}
+                      <span>{isUploadingConfigGallery ? "Uploading..." : "+ Add Photos"}</span>
+                      <input
+                        type="file"
+                        multiple
+                        accept="image/jpeg,image/png,image/webp"
+                        className="hidden"
+                        disabled={isUploadingConfigGallery}
+                        onChange={handleConfigGalleryUpload}
+                      />
+                    </label>
+                  </div>
+
+                  {Array.isArray(currentConfig.images) && currentConfig.images.length > 0 ? (
+                    <div className="grid grid-cols-3 sm:grid-cols-4 gap-2.5">
+                      {currentConfig.images.map((imgUrl, imgIdx) => (
+                        <div key={imgIdx} className="relative group rounded-lg overflow-hidden border border-white/10 bg-slate-950 h-20">
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img src={imgUrl} alt={`Gallery ${imgIdx + 1}`} className="h-full w-full object-cover" />
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveConfigGalleryImage(imgIdx)}
+                            className="absolute top-1 right-1 rounded-full bg-slate-950/80 p-1 text-red-400 opacity-0 group-hover:opacity-100 hover:bg-red-500 hover:text-white transition"
+                            title="Remove photo"
+                          >
+                            <X className="h-3 w-3" />
+                          </button>
+                          {currentConfig.image_url === imgUrl && (
+                            <span className="absolute bottom-1 left-1 rounded bg-sky-500/90 px-1 py-0.2 text-[8px] font-bold text-white">
+                              Cover
+                            </span>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-[11px] text-slate-500 italic">No additional photos uploaded yet.</p>
+                  )}
+                </div>
+              </div>
+
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-semibold text-slate-300 uppercase">Property Type *</label>

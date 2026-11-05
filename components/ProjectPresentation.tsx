@@ -38,6 +38,9 @@ import {
   ExternalLink,
   Send,
   Landmark,
+  Eye,
+  Star,
+  Image as ImageIcon,
 } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
 import {
@@ -73,6 +76,8 @@ export interface PropertyConfiguration {
   features?: string[];
   floorPlanUrl?: string;
   floor_plan_url?: string;
+  image_url?: string;
+  images?: string[];
   description?: string;
   descriptionAr?: string;
   description_ar?: string;
@@ -309,6 +314,68 @@ export default function ProjectPresentation({
   const [selectedConfIndex, setSelectedConfIndex] = useState(0);
   const activeConf = configurations[selectedConfIndex] || configurations[0];
 
+  // Configuration Detail Modal & Filter state
+  const [selectedConfigModal, setSelectedConfigModal] = useState<PropertyConfiguration | null>(null);
+  const [configModalTab, setConfigModalTab] = useState<"photos" | "floorplan">("photos");
+  const [configModalPhotoIndex, setConfigModalPhotoIndex] = useState(0);
+  const [configFilterType, setConfigFilterType] = useState<string>("All");
+
+  const openConfigModal = useCallback((conf: PropertyConfiguration) => {
+    setSelectedConfigModal(conf);
+    setConfigModalTab("photos");
+    setConfigModalPhotoIndex(0);
+  }, []);
+
+  const closeConfigModal = useCallback(() => {
+    setSelectedConfigModal(null);
+  }, []);
+
+  const configurationTypes = useMemo(() => {
+    const set = new Set<string>();
+    configurations.forEach((c) => {
+      const t = c.property_type || c.type;
+      if (t) set.add(t);
+    });
+    return Array.from(set);
+  }, [configurations]);
+
+  const filteredConfigurations = useMemo(() => {
+    if (configFilterType === "All") return configurations;
+    return configurations.filter((c) => (c.property_type || c.type) === configFilterType);
+  }, [configurations, configFilterType]);
+
+  const getConfigCoverImage = useCallback(
+    (conf: PropertyConfiguration): string => {
+      if (conf.image_url) return conf.image_url;
+      if (Array.isArray(conf.images) && conf.images.length > 0 && conf.images[0]) {
+        return conf.images[0];
+      }
+      if (conf.floor_plan_url || conf.floorPlanUrl) {
+        return conf.floor_plan_url || conf.floorPlanUrl!;
+      }
+      return gallery[0] || project.image || "";
+    },
+    [gallery, project.image]
+  );
+
+  const getConfigGalleryPhotos = useCallback(
+    (conf: PropertyConfiguration): string[] => {
+      const photos: string[] = [];
+      if (conf.image_url) photos.push(conf.image_url);
+      if (Array.isArray(conf.images)) {
+        conf.images.forEach((img) => {
+          if (img && !photos.includes(img)) photos.push(img);
+        });
+      }
+      if (photos.length === 0) {
+        if (gallery[0]) photos.push(gallery[0]);
+        else if (project.image) photos.push(project.image);
+      }
+      return photos;
+    },
+    [gallery, project.image]
+  );
+
   // Lightbox Modal state
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [lightboxIndex, setLightboxIndex] = useState(0);
@@ -328,20 +395,31 @@ export default function ProjectPresentation({
     setLightboxIndex((prev) => (prev < gallery.length - 1 ? prev + 1 : 0));
   }, [gallery.length]);
 
-  // Keyboard navigation for Lightbox
+  // Floor plan enlarged preview modal state
+  const [floorPlanModalOpen, setFloorPlanModalOpen] = useState(false);
+
+  // Keyboard navigation for Lightbox and Modals
   useEffect(() => {
-    if (!lightboxOpen) return;
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") closeLightbox();
-      if (e.key === "ArrowLeft") isAr ? nextLightboxImage() : prevLightboxImage();
-      if (e.key === "ArrowRight") isAr ? prevLightboxImage() : nextLightboxImage();
+      if (e.key === "Escape") {
+        if (selectedConfigModal) closeConfigModal();
+        if (lightboxOpen) closeLightbox();
+        if (floorPlanModalOpen) setFloorPlanModalOpen(false);
+      }
+      if (lightboxOpen) {
+        if (e.key === "ArrowLeft") {
+          if (isAr) nextLightboxImage();
+          else prevLightboxImage();
+        }
+        if (e.key === "ArrowRight") {
+          if (isAr) prevLightboxImage();
+          else nextLightboxImage();
+        }
+      }
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [lightboxOpen, isAr, prevLightboxImage, nextLightboxImage]);
-
-  // Floor plan enlarged preview modal state
-  const [floorPlanModalOpen, setFloorPlanModalOpen] = useState(false);
+  }, [lightboxOpen, selectedConfigModal, floorPlanModalOpen, isAr, closeConfigModal, prevLightboxImage, nextLightboxImage]);
 
   // Video modal / state
   const [videoPlaying, setVideoPlaying] = useState(false);
@@ -384,6 +462,7 @@ export default function ProjectPresentation({
     const confBua = conf.bua_sqm || conf.bua || "";
     return getConfigurationWhatsAppUrl({
       projectName: title,
+      propertyType: conf.property_type || conf.type,
       configurationName: confName,
       bedrooms: conf.bedrooms,
       bua: confBua,
@@ -996,11 +1075,11 @@ Client Note: ${message}`,
       </section>
 
       {/* =========================================================================
-          SECTION 4: PROPERTY TYPES & CONFIGURATIONS
+          SECTION 4: PROPERTY TYPES & AVAILABLE UNITS (VISUAL CARDS & MODAL)
           ========================================================================= */}
       <section className="relative border-t border-white/10 py-20 bg-slate-950/60">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col md:flex-row md:items-end justify-between mb-12">
+          <div className="flex flex-col md:flex-row md:items-end justify-between mb-10">
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.25em] text-sky-400">
                 {copy.availableUnits || (isAr ? "نماذج ومخططات الوحدات المتاحة" : "Property Types & Available Units")}
@@ -1017,212 +1096,557 @@ Client Note: ${message}`,
             </p>
           </div>
 
-          {/* Configuration Selection Tabs */}
-          <div className="flex flex-wrap items-center gap-2 mb-8 border-b border-white/10 pb-4">
-            {configurations.map((conf, idx) => {
-              const tabTitle = isAr
-                ? conf.name_ar || conf.titleAr || conf.name || conf.title
-                : conf.name || conf.title;
+          {/* Category Filter Pills (if multiple categories exist) */}
+          {configurationTypes.length > 1 && (
+            <div className="flex flex-wrap items-center gap-2 mb-8 border-b border-white/10 pb-4">
+              <button
+                type="button"
+                onClick={() => setConfigFilterType("All")}
+                className={`rounded-xl px-4 py-2 text-xs sm:text-sm font-semibold transition-all ${
+                  configFilterType === "All"
+                    ? "bg-gradient-to-r from-sky-400 to-cyan-400 text-slate-950 shadow-[0_0_20px_rgba(56,189,248,0.35)]"
+                    : "bg-slate-900/80 text-slate-300 border border-white/10 hover:bg-white/10"
+                }`}
+              >
+                {isAr ? `جميع النماذج (${configurations.length})` : `All Units (${configurations.length})`}
+              </button>
+              {configurationTypes.map((typeKey) => {
+                const count = configurations.filter((c) => (c.property_type || c.type) === typeKey).length;
+                return (
+                  <button
+                    key={typeKey}
+                    type="button"
+                    onClick={() => setConfigFilterType(typeKey)}
+                    className={`rounded-xl px-4 py-2 text-xs sm:text-sm font-semibold transition-all ${
+                      configFilterType === typeKey
+                        ? "bg-gradient-to-r from-sky-400 to-cyan-400 text-slate-950 shadow-[0_0_20px_rgba(56,189,248,0.35)]"
+                        : "bg-slate-900/80 text-slate-300 border border-white/10 hover:bg-white/10"
+                    }`}
+                  >
+                    {typeKey} ({count})
+                  </button>
+                );
+              })}
+            </div>
+          )}
+
+          {/* Visual Property Cards Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
+            {filteredConfigurations.map((conf, idx) => {
+              const confTitle = isAr
+                ? conf.name_ar || conf.titleAr || conf.name || conf.title || "وحدة سكنية فاخرة"
+                : conf.name || conf.title || "Luxury Residence";
+              const confDesc = isAr
+                ? conf.description_ar || conf.descriptionAr || conf.description || ""
+                : conf.description || "";
+              const coverImg = getConfigCoverImage(conf);
+              const photos = getConfigGalleryPhotos(conf);
+              const propType = conf.property_type || conf.type || "Apartment";
+              const availStatus = conf.availability_status || conf.availability;
+
               return (
-                <button
+                <div
                   key={conf.id || idx}
-                  type="button"
-                  onClick={() => setSelectedConfIndex(idx)}
-                  className={`rounded-xl px-5 py-2.5 text-xs sm:text-sm font-semibold transition-all ${
-                    selectedConfIndex === idx
-                      ? "bg-gradient-to-r from-sky-400 to-cyan-400 text-slate-950 shadow-[0_0_20px_rgba(56,189,248,0.35)]"
-                      : "bg-slate-900/80 text-slate-300 border border-white/10 hover:bg-white/10"
-                  }`}
+                  className="group relative flex flex-col overflow-hidden rounded-3xl border border-white/10 bg-slate-900/60 backdrop-blur-md transition-all duration-300 hover:border-sky-400/40 hover:bg-slate-900/90 hover:shadow-[0_12px_40px_rgba(56,189,248,0.15)]"
                 >
-                  {tabTitle}
-                </button>
+                  {/* Visual Cover Photo Container */}
+                  <div
+                    onClick={() => openConfigModal(conf)}
+                    className="relative h-60 w-full overflow-hidden bg-slate-950 cursor-pointer"
+                  >
+                    {coverImg ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={coverImg}
+                        alt={confTitle}
+                        className="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
+                      />
+                    ) : (
+                      <div className="flex h-full w-full flex-col items-center justify-center bg-slate-950 text-slate-600">
+                        <Building2 className="h-10 w-10 text-slate-500 mb-2" />
+                        <span className="text-xs text-slate-400">{isAr ? "صورة النموذج قيد التحديث" : "Render Preview"}</span>
+                      </div>
+                    )}
+
+                    {/* Vignette Overlay */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/20 to-transparent" />
+
+                    {/* Top Badges */}
+                    <div className="absolute top-3 inset-x-3 flex items-center justify-between gap-2 pointer-events-none">
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        <span className="rounded-full bg-slate-950/80 border border-sky-400/30 px-2.5 py-1 text-[11px] font-bold text-sky-300 backdrop-blur-md shadow">
+                          {propType}
+                        </span>
+                        {conf.is_featured && (
+                          <span className="inline-flex items-center gap-1 rounded-full bg-amber-500/25 border border-amber-400/40 px-2.5 py-1 text-[10px] font-extrabold text-amber-300 backdrop-blur-md shadow uppercase tracking-wide">
+                            <Star className="h-2.5 w-2.5 fill-amber-300" />
+                            <span>Featured</span>
+                          </span>
+                        )}
+                      </div>
+
+                      {availStatus && (
+                        <span className={`rounded-full px-2.5 py-1 text-[10px] font-bold backdrop-blur-md shadow ${
+                          availStatus.toLowerCase().includes("sold")
+                            ? "bg-rose-500/20 border border-rose-400/30 text-rose-300"
+                            : availStatus.toLowerCase().includes("limited")
+                            ? "bg-amber-500/20 border border-amber-400/30 text-amber-300"
+                            : "bg-emerald-500/20 border border-emerald-400/30 text-emerald-300"
+                        }`}>
+                          {availStatus}
+                        </span>
+                      )}
+                    </div>
+
+                    {/* Bottom Photo Count & Zoom Hint */}
+                    <div className="absolute bottom-3 inset-x-3 flex items-center justify-between text-xs text-white">
+                      <span className="inline-flex items-center gap-1 rounded-lg bg-slate-950/75 border border-white/10 px-2.5 py-1 text-[11px] font-medium backdrop-blur-md text-slate-300">
+                        <ImageIcon className="h-3 w-3 text-sky-400" />
+                        <span>{photos.length > 0 ? `${photos.length} ${isAr ? "صور" : "Photos"}` : (isAr ? "معاينة" : "Preview")}</span>
+                      </span>
+
+                      <span className="inline-flex items-center gap-1 rounded-lg bg-sky-500/20 border border-sky-400/30 px-2.5 py-1 text-[11px] font-semibold text-sky-300 backdrop-blur-md opacity-90 group-hover:opacity-100 transition">
+                        <Eye className="h-3 w-3" />
+                        <span>{isAr ? "عرض التفاصيل" : "View Details"}</span>
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Card Body */}
+                  <div className="p-6 flex-1 flex flex-col justify-between space-y-4">
+                    <div>
+                      <h3
+                        onClick={() => openConfigModal(conf)}
+                        className="font-[family-name:var(--font-outfit)] rtl:font-[family-name:var(--font-cairo)] text-lg sm:text-xl font-bold text-white transition-colors group-hover:text-sky-300 cursor-pointer"
+                      >
+                        {confTitle}
+                      </h3>
+
+                      {confDesc && (
+                        <p className="mt-1.5 text-xs text-slate-400 line-clamp-2 leading-relaxed">
+                          {confDesc}
+                        </p>
+                      )}
+                    </div>
+
+                    {/* Quick Specs Grid */}
+                    <div className="grid grid-cols-3 gap-2 py-3 border-y border-white/10 text-xs">
+                      {/* Bedrooms */}
+                      <div className="flex flex-col items-center justify-center p-2 rounded-xl bg-slate-950/50 border border-white/5 text-center">
+                        <div className="flex items-center gap-1 text-slate-400 text-[11px] mb-0.5">
+                          <BedDouble className="h-3.5 w-3.5 text-sky-400" />
+                          <span>{isAr ? "غرف" : "Beds"}</span>
+                        </div>
+                        <span className="font-bold text-white text-xs sm:text-sm">
+                          {Number(conf.bedrooms) === 0 || propType === "Studio"
+                            ? (isAr ? "استوديو" : "Studio")
+                            : conf.bedrooms ?? 1}
+                        </span>
+                      </div>
+
+                      {/* Bathrooms */}
+                      <div className="flex flex-col items-center justify-center p-2 rounded-xl bg-slate-950/50 border border-white/5 text-center">
+                        <div className="flex items-center gap-1 text-slate-400 text-[11px] mb-0.5">
+                          <Bath className="h-3.5 w-3.5 text-sky-400" />
+                          <span>{isAr ? "حمامات" : "Baths"}</span>
+                        </div>
+                        <span className="font-bold text-white text-xs sm:text-sm">
+                          {conf.bathrooms ?? 1}
+                        </span>
+                      </div>
+
+                      {/* BUA */}
+                      <div className="flex flex-col items-center justify-center p-2 rounded-xl bg-slate-950/50 border border-white/5 text-center">
+                        <div className="flex items-center gap-1 text-slate-400 text-[11px] mb-0.5">
+                          <Square className="h-3.5 w-3.5 text-emerald-400" />
+                          <span>{isAr ? "المساحة" : "BUA"}</span>
+                        </div>
+                        <span className="font-bold text-white text-xs sm:text-sm">
+                          {conf.bua_sqm || conf.bua ? `${conf.bua_sqm || conf.bua} ${isAr ? "م²" : "sqm"}` : (isAr ? "عند الطلب" : "On Request")}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Price & Actions Footer */}
+                    <div className="space-y-3 pt-1">
+                      <div className="flex items-baseline justify-between">
+                        <span className="text-[11px] uppercase tracking-wider text-slate-400 font-semibold">
+                          {isAr ? "السعر الابتدائي" : "Starting Price"}
+                        </span>
+                        <span className="font-[family-name:var(--font-outfit)] text-base sm:text-lg font-extrabold text-amber-400">
+                          {conf.price || price}
+                        </span>
+                      </div>
+
+                      <div className="flex items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={() => openConfigModal(conf)}
+                          className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-xl bg-sky-500/15 border border-sky-400/30 px-3.5 py-2.5 text-xs font-bold text-sky-300 hover:bg-sky-500/30 transition active:scale-[0.98]"
+                        >
+                          <Eye className="h-3.5 w-3.5" />
+                          <span>{isAr ? "تفاصيل الوحدة" : "View Details"}</span>
+                        </button>
+
+                        <a
+                          href={getConfWhatsAppUrl(conf)}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center justify-center gap-1.5 rounded-xl bg-emerald-500 px-3.5 py-2.5 text-xs font-bold text-slate-950 hover:bg-emerald-400 transition shadow-[0_0_15px_rgba(16,185,129,0.25)] active:scale-[0.98]"
+                          title={isAr ? "استفسر عبر واتساب" : "Enquire on WhatsApp"}
+                        >
+                          <WhatsAppIcon className="h-4 w-4 fill-slate-950" />
+                          <span className="hidden sm:inline">{isAr ? "واتساب" : "WhatsApp"}</span>
+                        </a>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               );
             })}
           </div>
-
-          {/* Active Configuration Showcase Card */}
-          {activeConf && (
-            <div className="grid gap-8 lg:grid-cols-12 items-center rounded-3xl border border-white/10 bg-slate-900/70 p-6 sm:p-8 backdrop-blur-xl shadow-2xl">
-              {/* Visual Floor Plan Preview (7 cols) */}
-              <div className="lg:col-span-7 relative">
-                <div className="relative h-64 sm:h-96 w-full overflow-hidden rounded-2xl border border-white/10 bg-slate-950 flex items-center justify-center p-4">
-                  {(activeConf.floor_plan_url || activeConf.floorPlanUrl || floorPlanUrl) ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img
-                      src={activeConf.floor_plan_url || activeConf.floorPlanUrl || floorPlanUrl!}
-                      alt={activeConf.name || activeConf.title || "Floor plan"}
-                      className="h-full w-full object-contain cursor-pointer transition hover:scale-105"
-                      onClick={() => setFloorPlanModalOpen(true)}
-                    />
-                  ) : (
-                    <div className="flex flex-col items-center justify-center text-slate-500 text-xs">
-                      <Ruler className="h-8 w-8 mb-2 text-slate-600" />
-                      <span>{isAr ? "المخطط الهندسي متاح عند الطلب" : "Blueprint Available Upon Request"}</span>
-                    </div>
-                  )}
-                  <button
-                    type="button"
-                    onClick={() => setFloorPlanModalOpen(true)}
-                    className="absolute bottom-4 right-4 rounded-xl bg-slate-950/80 px-3.5 py-2 text-xs font-semibold text-sky-400 border border-white/10 backdrop-blur-md hover:bg-slate-900 transition flex items-center gap-1.5"
-                  >
-                    <Maximize2 className="h-3.5 w-3.5" />
-                    <span>{copy.viewFloorPlan || (isAr ? "تكبير المخطط" : "Enlarge Blueprint")}</span>
-                  </button>
-                </div>
-              </div>
-
-              {/* Specifications & Direct Unit CTA (5 cols) */}
-              <div className="lg:col-span-5 flex flex-col justify-between space-y-6">
-                <div>
-                  <div className="flex flex-wrap items-center gap-2 mb-2">
-                    <span className="rounded-full bg-sky-500/10 border border-sky-400/20 px-3 py-1 text-xs font-semibold text-sky-400 uppercase">
-                      {activeConf.property_type || activeConf.type || "Apartment"}
-                    </span>
-                    {(activeConf.availability || activeConf.availability_status) && (
-                      <span className="rounded-full bg-emerald-500/10 border border-emerald-400/20 px-2.5 py-0.5 text-[11px] font-semibold text-emerald-400">
-                        {activeConf.availability_status || activeConf.availability}
-                      </span>
-                    )}
-                    {activeConf.is_featured && (
-                      <span className="rounded-full bg-amber-500/15 border border-amber-400/30 px-2 py-0.5 text-[10px] font-bold text-amber-300 uppercase">
-                        ★ Featured
-                      </span>
-                    )}
-                  </div>
-
-                  <h3 className="font-[family-name:var(--font-outfit)] rtl:font-[family-name:var(--font-cairo)] text-2xl font-bold text-white mt-2">
-                    {isAr
-                      ? activeConf.name_ar || activeConf.titleAr || activeConf.name || activeConf.title
-                      : activeConf.name || activeConf.title}
-                  </h3>
-                  <p className="mt-2 text-xs sm:text-sm text-slate-300 leading-relaxed">
-                    {isAr
-                      ? activeConf.description_ar || activeConf.descriptionAr || activeConf.description
-                      : activeConf.description}
-                  </p>
-                </div>
-
-                {/* Specs Grid */}
-                <div className="grid grid-cols-2 gap-3 text-xs">
-                  {/* Bedrooms (if studio or 0 beds, display Studio) */}
-                  <div className="rounded-xl border border-white/10 bg-slate-950/60 p-3">
-                    <div className="flex items-center gap-2 text-slate-400 mb-1">
-                      <BedDouble className="h-4 w-4 text-sky-400" />
-                      <span>{copy.bedrooms || (isAr ? "غرف النوم" : "Bedrooms")}</span>
-                    </div>
-                    <span className="font-bold text-white text-sm">
-                      {Number(activeConf.bedrooms) === 0 || (activeConf.property_type || activeConf.type) === "Studio"
-                        ? (isAr ? "استوديو" : "Studio")
-                        : activeConf.bedrooms}
-                    </span>
-                  </div>
-
-                  <div className="rounded-xl border border-white/10 bg-slate-950/60 p-3">
-                    <div className="flex items-center gap-2 text-slate-400 mb-1">
-                      <Bath className="h-4 w-4 text-sky-400" />
-                      <span>{copy.bathrooms || (isAr ? "دورات المياه" : "Bathrooms")}</span>
-                    </div>
-                    <span className="font-bold text-white text-sm">{activeConf.bathrooms || 1}</span>
-                  </div>
-
-                  <div className="rounded-xl border border-white/10 bg-slate-950/60 p-3">
-                    <div className="flex items-center gap-2 text-slate-400 mb-1">
-                      <Square className="h-4 w-4 text-emerald-400" />
-                      <span>{copy.builtUpArea || (isAr ? "مساحة البناء" : "Built-Up Area")}</span>
-                    </div>
-                    <span className="font-bold text-white text-sm">
-                      {activeConf.bua_sqm || activeConf.bua} {isAr ? "م²" : "sqm"}
-                    </span>
-                  </div>
-
-                  {(activeConf.plot_sqm || activeConf.plot) ? (
-                    <div className="rounded-xl border border-white/10 bg-slate-950/60 p-3">
-                      <div className="flex items-center gap-2 text-slate-400 mb-1">
-                        <Ruler className="h-4 w-4 text-amber-400" />
-                        <span>{copy.plotArea || (isAr ? "مساحة الأرض" : "Plot Area")}</span>
-                      </div>
-                      <span className="font-bold text-white text-sm">
-                        {activeConf.plot_sqm || activeConf.plot} {isAr ? "م²" : "sqm"}
-                      </span>
-                    </div>
-                  ) : (activeConf.balconies && Number(activeConf.balconies) > 0) ? (
-                    <div className="rounded-xl border border-white/10 bg-slate-950/60 p-3">
-                      <div className="flex items-center gap-2 text-slate-400 mb-1">
-                        <Sparkles className="h-4 w-4 text-amber-400" />
-                        <span>{copy.balconies || (isAr ? "شرفات" : "Balconies")}</span>
-                      </div>
-                      <span className="font-bold text-white text-sm">{activeConf.balconies}</span>
-                    </div>
-                  ) : null}
-
-                  {(activeConf.furnishing_status || activeConf.furnishing) && (
-                    <div className="rounded-xl border border-white/10 bg-slate-950/60 p-3">
-                      <div className="flex items-center gap-2 text-slate-400 mb-1">
-                        <Building2 className="h-4 w-4 text-cyan-400" />
-                        <span>{copy.furnishing || (isAr ? "حالة التأثيث" : "Furnishing")}</span>
-                      </div>
-                      <span className="font-bold text-white text-xs truncate block">
-                        {activeConf.furnishing_status || activeConf.furnishing}
-                      </span>
-                    </div>
-                  )}
-
-                  {(activeConf.parking_info || activeConf.parking) && (
-                    <div className="rounded-xl border border-white/10 bg-slate-950/60 p-3">
-                      <div className="flex items-center gap-2 text-slate-400 mb-1">
-                        <Car className="h-4 w-4 text-sky-400" />
-                        <span>{copy.parking || (isAr ? "مواقف السيارات" : "Parking")}</span>
-                      </div>
-                      <span className="font-bold text-white text-xs truncate block">
-                        {activeConf.parking_info || activeConf.parking}
-                      </span>
-                    </div>
-                  )}
-                </div>
-
-                {/* Price & Action Buttons */}
-                <div className="pt-2 border-t border-white/10">
-                  <div className="flex items-center justify-between mb-4">
-                    <span className="text-xs font-semibold text-slate-400">
-                      {copy.startingPrice || (isAr ? "السعر" : "Price Range")}
-                    </span>
-                    <span className="font-[family-name:var(--font-outfit)] text-xl font-black text-amber-400">
-                      {activeConf.price || price}
-                    </span>
-                  </div>
-
-                  <div className="flex flex-col sm:flex-row gap-3">
-                    <a
-                      href={getConfWhatsAppUrl(activeConf)}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex-1 inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-500 px-5 py-3.5 text-xs sm:text-sm font-bold text-slate-950 shadow-[0_0_20px_rgba(16,185,129,0.3)] transition hover:bg-emerald-400 active:scale-[0.98]"
-                    >
-                      <WhatsAppIcon className="h-4 w-4 fill-slate-950" />
-                      <span>{copy.enquireWhatsApp || (isAr ? "استفسر عبر واتساب" : "Enquire on WhatsApp")}</span>
-                    </a>
-
-                    <button
-                      type="button"
-                      onClick={() =>
-                        scrollToEnquiry(
-                          isAr
-                            ? activeConf.name_ar || activeConf.titleAr || activeConf.name || activeConf.title
-                            : activeConf.name || activeConf.title
-                        )
-                      }
-                      className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/15 bg-slate-950 px-5 py-3.5 text-xs sm:text-sm font-semibold text-white hover:bg-white/10 transition"
-                    >
-                      <Send className="h-4 w-4" />
-                      <span>{copy.enquireUnit || (isAr ? "طلب حجز واستشارة" : "Register Interest")}</span>
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
         </div>
       </section>
+
+      {/* =========================================================================
+          INTERACTIVE CONFIGURATION DETAIL MODAL / LIGHTBOX
+          ========================================================================= */}
+      {selectedConfigModal && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/85 p-3 sm:p-6 backdrop-blur-md overflow-y-auto"
+          onClick={closeConfigModal}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="relative w-full max-w-4xl max-h-[92vh] overflow-y-auto rounded-3xl border border-sky-400/30 bg-slate-900 p-5 sm:p-8 shadow-[0_25px_70px_rgba(0,0,0,0.85)] text-slate-100"
+          >
+            {/* Modal Close Button */}
+            <button
+              type="button"
+              onClick={closeConfigModal}
+              className="absolute top-4 sm:top-6 right-4 sm:right-6 z-10 flex h-9 w-9 items-center justify-center rounded-full bg-slate-950/80 border border-white/15 text-slate-400 hover:text-white hover:bg-slate-900 transition"
+              aria-label="Close modal"
+            >
+              <X className="h-5 w-5" />
+            </button>
+
+            {/* Modal Header */}
+            <div className="pr-10 pb-4 border-b border-white/10">
+              <div className="flex flex-wrap items-center gap-2 mb-2">
+                <span className="rounded-full bg-sky-500/15 border border-sky-400/30 px-3 py-1 text-xs font-bold text-sky-300 uppercase">
+                  {selectedConfigModal.property_type || selectedConfigModal.type || "Apartment"}
+                </span>
+                {(selectedConfigModal.availability_status || selectedConfigModal.availability) && (
+                  <span className="rounded-full bg-emerald-500/15 border border-emerald-400/30 px-3 py-1 text-xs font-semibold text-emerald-300">
+                    {selectedConfigModal.availability_status || selectedConfigModal.availability}
+                  </span>
+                )}
+                {selectedConfigModal.is_featured && (
+                  <span className="inline-flex items-center gap-1 rounded-full bg-amber-500/20 border border-amber-400/30 px-2.5 py-1 text-xs font-bold text-amber-300 uppercase">
+                    <Star className="h-3 w-3 fill-amber-300" /> Featured
+                  </span>
+                )}
+              </div>
+
+              <h3 className="font-[family-name:var(--font-outfit)] rtl:font-[family-name:var(--font-cairo)] text-2xl sm:text-3xl font-extrabold text-white">
+                {isAr
+                  ? selectedConfigModal.name_ar || selectedConfigModal.titleAr || selectedConfigModal.name || selectedConfigModal.title
+                  : selectedConfigModal.name || selectedConfigModal.title}
+              </h3>
+              <p className="text-xs sm:text-sm text-slate-400 mt-1 flex items-center gap-1.5">
+                <Building2 className="h-3.5 w-3.5 text-sky-400" />
+                <span>{title} • {location}</span>
+              </p>
+            </div>
+
+            {/* Modal Media Showcase */}
+            {(() => {
+              const modalPhotos = getConfigGalleryPhotos(selectedConfigModal);
+              const hasFloorPlan = Boolean(selectedConfigModal.floor_plan_url || selectedConfigModal.floorPlanUrl || floorPlanUrl);
+              const activePhoto = modalPhotos[configModalPhotoIndex] || modalPhotos[0];
+
+              return (
+                <div className="mt-5 space-y-3">
+                  {/* Media Tabs Switcher (if floor plan exists) */}
+                  {hasFloorPlan && (
+                    <div className="flex items-center gap-2 border-b border-white/10 pb-2">
+                      <button
+                        type="button"
+                        onClick={() => setConfigModalTab("photos")}
+                        className={`inline-flex items-center gap-1.5 rounded-xl px-4 py-2 text-xs font-bold transition ${
+                          configModalTab === "photos"
+                            ? "bg-sky-500 text-slate-950 shadow-[0_0_15px_rgba(56,189,248,0.35)]"
+                            : "bg-slate-950 text-slate-400 border border-white/10 hover:text-white"
+                        }`}
+                      >
+                        <ImageIcon className="h-3.5 w-3.5" />
+                        <span>{isAr ? `معرض الصور (${modalPhotos.length})` : `Photography (${modalPhotos.length})`}</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setConfigModalTab("floorplan")}
+                        className={`inline-flex items-center gap-1.5 rounded-xl px-4 py-2 text-xs font-bold transition ${
+                          configModalTab === "floorplan"
+                            ? "bg-sky-500 text-slate-950 shadow-[0_0_15px_rgba(56,189,248,0.35)]"
+                            : "bg-slate-950 text-slate-400 border border-white/10 hover:text-white"
+                        }`}
+                      >
+                        <Ruler className="h-3.5 w-3.5" />
+                        <span>{isAr ? "المخطط المعماري" : "Floor Plan Blueprint"}</span>
+                      </button>
+                    </div>
+                  )}
+
+                  {/* Active Media Container */}
+                  {configModalTab === "photos" ? (
+                    <div className="space-y-3">
+                      <div className="relative h-72 sm:h-96 w-full overflow-hidden rounded-2xl border border-white/10 bg-slate-950">
+                        {activePhoto ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img
+                            src={activePhoto}
+                            alt={selectedConfigModal.name || "Configuration preview"}
+                            className="h-full w-full object-cover sm:object-contain bg-slate-950"
+                          />
+                        ) : (
+                          <div className="flex h-full w-full items-center justify-center text-slate-500 text-xs">
+                            <ImageIcon className="h-10 w-10 text-slate-600 mb-2" />
+                            <span>{isAr ? "لا توجد صور متوفرة" : "No photos available"}</span>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Gallery Thumbnail Row */}
+                      {modalPhotos.length > 1 && (
+                        <div className="flex items-center gap-2.5 overflow-x-auto pb-2 pt-1 scrollbar-thin">
+                          {modalPhotos.map((pUrl, pIdx) => (
+                            <button
+                              key={pIdx}
+                              type="button"
+                              onClick={() => setConfigModalPhotoIndex(pIdx)}
+                              className={`relative h-16 w-24 shrink-0 overflow-hidden rounded-xl border transition-all ${
+                                configModalPhotoIndex === pIdx
+                                  ? "border-sky-400 ring-2 ring-sky-400/50 scale-105"
+                                  : "border-white/10 opacity-70 hover:opacity-100"
+                              }`}
+                            >
+                              {/* eslint-disable-next-line @next/next/no-img-element */}
+                              <img src={pUrl} alt={`Thumbnail ${pIdx + 1}`} className="h-full w-full object-cover" />
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="relative h-72 sm:h-96 w-full overflow-hidden rounded-2xl border border-white/10 bg-slate-950 flex items-center justify-center p-4">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={selectedConfigModal.floor_plan_url || selectedConfigModal.floorPlanUrl || floorPlanUrl!}
+                        alt="Floor Plan"
+                        className="h-full w-full object-contain cursor-pointer"
+                        onClick={() => setFloorPlanModalOpen(true)}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setFloorPlanModalOpen(true)}
+                        className="absolute bottom-4 right-4 rounded-xl bg-slate-950/80 px-3.5 py-2 text-xs font-semibold text-sky-400 border border-white/10 backdrop-blur-md hover:bg-slate-900 transition flex items-center gap-1.5"
+                      >
+                        <Maximize2 className="h-3.5 w-3.5" />
+                        <span>{copy.viewFloorPlan || (isAr ? "تكبير المخطط" : "Enlarge Blueprint")}</span>
+                      </button>
+                    </div>
+                  )}
+                </div>
+              );
+            })()}
+
+            {/* Specifications Grid */}
+            <div className="mt-6">
+              <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-3">
+                {isAr ? "المواصفات الهندسية والتفاصيل" : "Architectural Specifications & Details"}
+              </h4>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
+                {/* Bedrooms */}
+                <div className="rounded-2xl border border-white/10 bg-slate-950/60 p-3.5">
+                  <div className="flex items-center gap-2 text-slate-400 mb-1">
+                    <BedDouble className="h-4 w-4 text-sky-400" />
+                    <span>{isAr ? "غرف النوم" : "Bedrooms"}</span>
+                  </div>
+                  <span className="font-bold text-white text-base">
+                    {Number(selectedConfigModal.bedrooms) === 0 || (selectedConfigModal.property_type || selectedConfigModal.type) === "Studio"
+                      ? (isAr ? "استوديو" : "Studio")
+                      : selectedConfigModal.bedrooms ?? 1}
+                  </span>
+                </div>
+
+                {/* Bathrooms */}
+                <div className="rounded-2xl border border-white/10 bg-slate-950/60 p-3.5">
+                  <div className="flex items-center gap-2 text-slate-400 mb-1">
+                    <Bath className="h-4 w-4 text-sky-400" />
+                    <span>{isAr ? "دورات المياه" : "Bathrooms"}</span>
+                  </div>
+                  <span className="font-bold text-white text-base">
+                    {selectedConfigModal.bathrooms ?? 1}
+                  </span>
+                </div>
+
+                {/* BUA */}
+                <div className="rounded-2xl border border-white/10 bg-slate-950/60 p-3.5">
+                  <div className="flex items-center gap-2 text-slate-400 mb-1">
+                    <Square className="h-4 w-4 text-emerald-400" />
+                    <span>{isAr ? "مساحة البناء (BUA)" : "Built-Up Area"}</span>
+                  </div>
+                  <span className="font-bold text-white text-base">
+                    {selectedConfigModal.bua_sqm || selectedConfigModal.bua ? `${selectedConfigModal.bua_sqm || selectedConfigModal.bua} ${isAr ? "م²" : "sqm"}` : (isAr ? "عند الطلب" : "On Request")}
+                  </span>
+                </div>
+
+                {/* Plot / Balconies */}
+                {(selectedConfigModal.plot_sqm || selectedConfigModal.plot) ? (
+                  <div className="rounded-2xl border border-white/10 bg-slate-950/60 p-3.5">
+                    <div className="flex items-center gap-2 text-slate-400 mb-1">
+                      <Ruler className="h-4 w-4 text-amber-400" />
+                      <span>{isAr ? "مساحة الأرض" : "Plot Area"}</span>
+                    </div>
+                    <span className="font-bold text-white text-base">
+                      {selectedConfigModal.plot_sqm || selectedConfigModal.plot} {isAr ? "م²" : "sqm"}
+                    </span>
+                  </div>
+                ) : (selectedConfigModal.balconies && Number(selectedConfigModal.balconies) > 0) ? (
+                  <div className="rounded-2xl border border-white/10 bg-slate-950/60 p-3.5">
+                    <div className="flex items-center gap-2 text-slate-400 mb-1">
+                      <Sparkles className="h-4 w-4 text-amber-400" />
+                      <span>{isAr ? "الشرفات" : "Balconies"}</span>
+                    </div>
+                    <span className="font-bold text-white text-base">
+                      {selectedConfigModal.balconies}
+                    </span>
+                  </div>
+                ) : (
+                  <div className="rounded-2xl border border-white/10 bg-slate-950/60 p-3.5">
+                    <div className="flex items-center gap-2 text-slate-400 mb-1">
+                      <Building2 className="h-4 w-4 text-cyan-400" />
+                      <span>{isAr ? "النوع" : "Category"}</span>
+                    </div>
+                    <span className="font-bold text-white text-base">
+                      {selectedConfigModal.property_type || selectedConfigModal.type || "Apartment"}
+                    </span>
+                  </div>
+                )}
+
+                {/* Furnishing Status if present */}
+                {(selectedConfigModal.furnishing_status || selectedConfigModal.furnishing) && (
+                  <div className="rounded-2xl border border-white/10 bg-slate-950/60 p-3.5">
+                    <div className="flex items-center gap-2 text-slate-400 mb-1">
+                      <Building2 className="h-4 w-4 text-cyan-400" />
+                      <span>{isAr ? "حالة التأثيث" : "Furnishing"}</span>
+                    </div>
+                    <span className="font-semibold text-white text-xs truncate block">
+                      {selectedConfigModal.furnishing_status || selectedConfigModal.furnishing}
+                    </span>
+                  </div>
+                )}
+
+                {/* Parking if present */}
+                {(selectedConfigModal.parking_info || selectedConfigModal.parking) && (
+                  <div className="rounded-2xl border border-white/10 bg-slate-950/60 p-3.5">
+                    <div className="flex items-center gap-2 text-slate-400 mb-1">
+                      <Car className="h-4 w-4 text-sky-400" />
+                      <span>{isAr ? "مواقف السيارات" : "Parking"}</span>
+                    </div>
+                    <span className="font-semibold text-white text-xs truncate block">
+                      {selectedConfigModal.parking_info || selectedConfigModal.parking}
+                    </span>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Narrative Description & Features */}
+            {(() => {
+              const desc = isAr
+                ? selectedConfigModal.description_ar || selectedConfigModal.descriptionAr || selectedConfigModal.description
+                : selectedConfigModal.description;
+              const features = selectedConfigModal.features;
+
+              return (
+                <div className="mt-6 space-y-4">
+                  {desc && (
+                    <div>
+                      <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">
+                        {isAr ? "نبذة عن النموذج" : "Overview & Layout Description"}
+                      </h4>
+                      <p className="text-xs sm:text-sm text-slate-300 leading-relaxed bg-slate-950/40 p-4 rounded-2xl border border-white/5">
+                        {desc}
+                      </p>
+                    </div>
+                  )}
+
+                  {Array.isArray(features) && features.length > 0 && (
+                    <div>
+                      <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">
+                        {isAr ? "الميزات الحصرية" : "Key Unit Features"}
+                      </h4>
+                      <div className="flex flex-wrap gap-2">
+                        {features.map((feat, fIdx) => (
+                          <span
+                            key={fIdx}
+                            className="inline-flex items-center gap-1.5 rounded-xl bg-sky-500/10 border border-sky-400/20 px-3 py-1.5 text-xs font-medium text-sky-300"
+                          >
+                            <Sparkles className="h-3 w-3 text-sky-400" />
+                            <span>{feat}</span>
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              );
+            })()}
+
+            {/* Bottom Sticky Action / Pricing Bar */}
+            <div className="mt-8 pt-5 border-t border-white/10 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div>
+                <span className="text-xs font-semibold uppercase tracking-wider text-slate-400 block">
+                  {isAr ? "السعر الابتدائي للوحدة" : "Starting Price for this Layout"}
+                </span>
+                <span className="font-[family-name:var(--font-outfit)] text-2xl font-black text-amber-400 mt-0.5 block">
+                  {selectedConfigModal.price || price}
+                </span>
+              </div>
+
+              <div className="flex flex-col sm:flex-row gap-3">
+                <a
+                  href={getConfWhatsAppUrl(selectedConfigModal)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-500 px-6 py-3.5 text-xs sm:text-sm font-bold text-slate-950 shadow-[0_0_20px_rgba(16,185,129,0.35)] transition hover:bg-emerald-400 active:scale-[0.98]"
+                >
+                  <WhatsAppIcon className="h-4 w-4 fill-slate-950" />
+                  <span>{isAr ? "استفسر عبر واتساب" : "Enquire on WhatsApp"}</span>
+                </a>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    const confTitle = isAr
+                      ? selectedConfigModal.name_ar || selectedConfigModal.titleAr || selectedConfigModal.name || selectedConfigModal.title
+                      : selectedConfigModal.name || selectedConfigModal.title;
+                    closeConfigModal();
+                    scrollToEnquiry(confTitle);
+                  }}
+                  className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/15 bg-slate-950 px-5 py-3.5 text-xs sm:text-sm font-semibold text-white hover:bg-white/10 transition"
+                >
+                  <Send className="h-4 w-4" />
+                  <span>{isAr ? "طلب حجز واستشارة" : "Register Interest"}</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* =========================================================================
           SECTION 5: AMENITIES & FACILITIES

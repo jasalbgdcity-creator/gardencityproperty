@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { ComponentType, useMemo, useState } from "react";
 import {
   BookOpen,
   CheckCircle2,
@@ -35,7 +35,7 @@ interface GuideSection {
   number: string;
   title: string;
   category: "Required" | "Recommended" | "Optional";
-  icon: any;
+  icon: ComponentType<{ className?: string }>;
   summary: string;
   fieldDetails: {
     name: string;
