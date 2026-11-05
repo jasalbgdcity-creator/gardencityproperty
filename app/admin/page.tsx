@@ -1,6 +1,6 @@
 "use client";
 
-import { ChangeEvent, FormEvent, useCallback, useEffect, useState } from "react";
+import { ChangeEvent, FormEvent, useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import type { User } from "@supabase/supabase-js";
@@ -63,6 +63,8 @@ import {
   AMENITY_ICON_OPTIONS,
   MILESTONE_ICON_OPTIONS,
 } from "@/lib/projectIcons";
+import { parseVideoUrl } from "@/lib/video";
+import { YouTubeIcon, VimeoIcon } from "@/components/VideoIcons";
 
 export interface AmenityRecord {
   id?: string;
@@ -720,6 +722,7 @@ export default function AdminDashboardPage() {
   // Section 8: Video & Brochure
   const [heroVideoUrl, setHeroVideoUrl] = useState("");
   const [brochureUrl, setBrochureUrl] = useState("");
+  const parsedHeroVideo = useMemo(() => parseVideoUrl(heroVideoUrl), [heroVideoUrl]);
 
   // Section 9: SEO & Slug
   const [customSlug, setCustomSlug] = useState("");
@@ -1899,9 +1902,13 @@ export default function AdminDashboardPage() {
     {
       id: "video",
       label: "Cinematic Video Tour",
-      status: Boolean(heroVideoUrl.trim()),
+      status: Boolean(heroVideoUrl.trim() && parsedHeroVideo.isValid),
       importance: "Optional" as const,
-      hint: heroVideoUrl.trim() ? "Walkthrough link attached" : "Optional MP4/YouTube link",
+      hint: heroVideoUrl.trim()
+        ? parsedHeroVideo.isValid
+          ? `Verified ${parsedHeroVideo.provider} (${parsedHeroVideo.videoId ? `ID: ${parsedHeroVideo.videoId}` : "active"})`
+          : "Invalid video link format"
+        : "Optional MP4/YouTube link",
       sectionAnchor: "sec-video-brochure",
     },
     {
@@ -4117,14 +4124,86 @@ export default function AdminDashboardPage() {
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-xs font-semibold text-slate-300 uppercase">Hero Video URL</label>
+                      <div className="flex items-center justify-between">
+                        <label className="block text-xs font-semibold text-slate-300 uppercase">Hero Video URL</label>
+                        {heroVideoUrl.trim() && (
+                          <button
+                            type="button"
+                            onClick={() => setHeroVideoUrl("")}
+                            className="text-[10px] text-slate-400 hover:text-rose-400 transition"
+                          >
+                            Clear Video
+                          </button>
+                        )}
+                      </div>
                       <input
                         type="url"
                         value={heroVideoUrl}
                         onChange={(e) => setHeroVideoUrl(e.target.value)}
-                        placeholder="https://youtube.com/watch?v=... or Vimeo"
-                        className="mt-1.5 w-full rounded-xl border border-white/10 bg-slate-900 px-3.5 py-2 text-xs text-white placeholder-slate-500 focus:outline-none"
+                        placeholder="https://youtube.com/watch?v=... or https://youtu.be/..."
+                        className={`mt-1.5 w-full rounded-xl border px-3.5 py-2 text-xs text-white placeholder-slate-500 focus:outline-none transition ${
+                          !heroVideoUrl.trim()
+                            ? "border-white/10 bg-slate-900 focus:border-sky-400"
+                            : parsedHeroVideo.isValid
+                            ? "border-emerald-500/50 bg-emerald-950/20 focus:border-emerald-400"
+                            : "border-amber-500/50 bg-amber-950/20 focus:border-amber-400"
+                        }`}
                       />
+
+                      {/* Video Validation & Format Info */}
+                      <div className="mt-2">
+                        {!heroVideoUrl.trim() ? (
+                          <p className="text-[11px] text-slate-400 leading-relaxed">
+                            Supports YouTube (watch, share, shorts, embed), Vimeo, or direct MP4 video files.
+                          </p>
+                        ) : parsedHeroVideo.isValid ? (
+                          <div className="rounded-xl border border-emerald-500/30 bg-emerald-950/30 p-2.5 space-y-1.5">
+                            <div className="flex items-center justify-between flex-wrap gap-2">
+                              <div className="flex items-center gap-1.5 text-xs font-semibold text-emerald-400">
+                                <CheckCircle2 className="h-4 w-4" />
+                                <span>
+                                  {parsedHeroVideo.provider === "youtube"
+                                    ? "Valid YouTube Video Stream"
+                                    : parsedHeroVideo.provider === "vimeo"
+                                    ? "Valid Vimeo Video Stream"
+                                    : "Direct Video Stream Verified"}
+                                </span>
+                              </div>
+                              {parsedHeroVideo.watchUrl && (
+                                <a
+                                  href={parsedHeroVideo.watchUrl}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="inline-flex items-center gap-1 text-[11px] font-medium text-sky-400 hover:underline"
+                                >
+                                  <span>Test Link</span>
+                                  <ExternalLink className="h-3 w-3" />
+                                </a>
+                              )}
+                            </div>
+                            {parsedHeroVideo.videoId && (
+                              <div className="flex items-center gap-2 text-[11px] text-slate-300">
+                                <span className="font-mono bg-emerald-900/40 px-2 py-0.5 rounded border border-emerald-500/20">
+                                  ID: {parsedHeroVideo.videoId}
+                                </span>
+                                <span className="text-slate-400 capitalize">
+                                  Provider: {parsedHeroVideo.provider}
+                                </span>
+                              </div>
+                            )}
+                          </div>
+                        ) : (
+                          <div className="rounded-xl border border-amber-500/30 bg-amber-950/30 p-2.5 space-y-1 text-xs">
+                            <div className="flex items-center gap-1.5 font-semibold text-amber-400">
+                              <AlertCircle className="h-4 w-4" />
+                              <span>Unrecognized Video Link</span>
+                            </div>
+                            <p className="text-[11px] text-slate-300">
+                              Please provide a valid YouTube link (e.g. <span className="text-sky-300 font-mono">youtube.com/watch?v=...</span> or <span className="text-sky-300 font-mono">youtu.be/...</span>) or Vimeo link.
+                            </p>
+                          </div>
+                        )}
+                      </div>
                     </div>
 
                     <div>
@@ -4136,8 +4215,65 @@ export default function AdminDashboardPage() {
                         placeholder="https://.../brochure.pdf"
                         className="mt-1.5 w-full rounded-xl border border-white/10 bg-slate-900 px-3.5 py-2 text-xs text-white placeholder-slate-500 focus:outline-none"
                       />
+                      <p className="mt-2 text-[11px] text-slate-400">
+                        Optional link to downloadable architectural brochure or investment deck.
+                      </p>
                     </div>
                   </div>
+
+                  {/* Live Interactive Preview Box */}
+                  {heroVideoUrl.trim() && parsedHeroVideo.isValid && (
+                    <div className="mt-4 rounded-xl border border-sky-400/30 bg-slate-900/90 p-4">
+                      <div className="flex items-center justify-between pb-2 mb-3 border-b border-white/10">
+                        <div className="flex items-center gap-2">
+                          {parsedHeroVideo.provider === "youtube" ? (
+                            <YouTubeIcon className="h-4 w-4 fill-red-500 text-red-500" />
+                          ) : parsedHeroVideo.provider === "vimeo" ? (
+                            <VimeoIcon className="h-4 w-4 fill-sky-400 text-sky-400" />
+                          ) : (
+                            <Video className="h-4 w-4 text-sky-400" />
+                          )}
+                          <span className="text-xs font-bold uppercase tracking-wider text-white">
+                            Admin Live Video Preview
+                          </span>
+                        </div>
+                        <span className="text-[10px] uppercase font-mono text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">
+                          Embed Verified
+                        </span>
+                      </div>
+
+                      <div className="relative aspect-video max-w-xl mx-auto overflow-hidden rounded-xl border border-white/15 bg-black shadow-xl">
+                        {parsedHeroVideo.provider === "youtube" && parsedHeroVideo.embedUrl ? (
+                          <iframe
+                            src={parsedHeroVideo.embedUrl}
+                            title="Admin Video Preview"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                            allowFullScreen
+                            referrerPolicy="strict-origin-when-cross-origin"
+                            className="h-full w-full border-0"
+                          />
+                        ) : parsedHeroVideo.provider === "vimeo" && parsedHeroVideo.embedUrl ? (
+                          <iframe
+                            src={parsedHeroVideo.embedUrl}
+                            title="Admin Vimeo Preview"
+                            allow="autoplay; fullscreen; picture-in-picture"
+                            allowFullScreen
+                            referrerPolicy="strict-origin-when-cross-origin"
+                            className="h-full w-full border-0"
+                          />
+                        ) : (
+                          <video
+                            src={parsedHeroVideo.embedUrl || heroVideoUrl}
+                            controls
+                            className="h-full w-full object-cover"
+                          />
+                        )}
+                      </div>
+                      <p className="mt-2 text-center text-[11px] text-slate-400">
+                        This preview confirms that the video stream functions smoothly and is ready for public display.
+                      </p>
+                    </div>
+                  )}
                 </div>
 
                 {/* -------------------------------------------------------------

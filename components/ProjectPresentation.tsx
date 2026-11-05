@@ -41,8 +41,13 @@ import {
   Eye,
   Star,
   Image as ImageIcon,
+  Loader2,
+  AlertCircle,
+  RefreshCw,
 } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
+import { parseVideoUrl } from "@/lib/video";
+import { YouTubeIcon, VimeoIcon } from "@/components/VideoIcons";
 import {
   getProjectWhatsAppUrl,
   getConfigurationWhatsAppUrl,
@@ -421,9 +426,50 @@ export default function ProjectPresentation({
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [lightboxOpen, selectedConfigModal, floorPlanModalOpen, isAr, closeConfigModal, prevLightboxImage, nextLightboxImage]);
 
-  // Video modal / state
+  // Video player state & parsed video info
   const [videoPlaying, setVideoPlaying] = useState(false);
+  const [videoLoading, setVideoLoading] = useState(true);
+  const [videoError, setVideoError] = useState(false);
+  const [videoKey, setVideoKey] = useState(0);
   const videoUrl = project.hero_video_url;
+  const parsedVideo = useMemo(() => parseVideoUrl(videoUrl), [videoUrl]);
+
+  // Handle video loading timeout (e.g., 8 seconds if iframe hangs or connection is throttled)
+  useEffect(() => {
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    if (videoPlaying && videoLoading && !videoError) {
+      timer = setTimeout(() => {
+        // Dismiss loading spinner so user isn't stuck waiting indefinitely
+        setVideoLoading(false);
+      }, 8000);
+    }
+    return () => {
+      if (timer) clearTimeout(timer);
+    };
+  }, [videoPlaying, videoLoading, videoError, videoKey]);
+
+  const handleStartVideo = () => {
+    if (parsedVideo.isValid || videoUrl) {
+      setVideoPlaying(true);
+      setVideoLoading(true);
+      setVideoError(false);
+    } else {
+      window.open(
+        getWhatsAppInquiryUrl(
+          isAr
+            ? `مرحباً، أود طلب جولة افتراضية مسجلة بالفيديو لمشروع ${title}`
+            : `Hello, I would like to request the virtual video walkthrough for ${title}`
+        ),
+        "_blank"
+      );
+    }
+  };
+
+  const handleRetryVideo = () => {
+    setVideoLoading(true);
+    setVideoError(false);
+    setVideoKey((prev) => prev + 1);
+  };
 
   // Form state
   const [enquiryConfig, setEnquiryConfig] = useState<string>(
@@ -1900,31 +1946,163 @@ Client Note: ${message}`,
 
           <div className="relative mx-auto max-w-5xl overflow-hidden rounded-3xl border border-white/15 bg-slate-900 shadow-2xl">
             {videoUrl && videoPlaying ? (
-              <div className="relative aspect-video w-full">
-                {videoUrl.includes("youtube.com") || videoUrl.includes("youtu.be") ? (
+              <div className="relative aspect-video w-full bg-slate-950">
+                {/* Top overlay toolbar: Direct Watch on YouTube / External link & Close */}
+                <div className="absolute top-3 right-3 left-3 z-20 flex items-center justify-between pointer-events-none">
+                  {parsedVideo.watchUrl ? (
+                    <a
+                      href={parsedVideo.watchUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="pointer-events-auto inline-flex items-center gap-1.5 rounded-full bg-slate-950/80 px-3 py-1.5 text-xs font-semibold text-white shadow-lg backdrop-blur-md border border-white/15 hover:bg-slate-900 hover:border-sky-400/60 transition"
+                      title={isAr ? "مشاهدة مباشرة على المنصة الأصلية" : "Watch on original platform"}
+                    >
+                      {parsedVideo.provider === "youtube" ? (
+                        <span className="flex items-center gap-1.5 text-red-500">
+                          <YouTubeIcon className="h-4 w-4 fill-red-500 text-red-500" />
+                          <span className="text-white font-medium">
+                            {isAr ? "مشاهدة على يوتيوب" : "Watch on YouTube"}
+                          </span>
+                        </span>
+                      ) : parsedVideo.provider === "vimeo" ? (
+                        <span className="flex items-center gap-1.5 text-sky-400">
+                          <VimeoIcon className="h-3.5 w-3.5 fill-sky-400 text-sky-400" />
+                          <span className="text-white font-medium">
+                            {isAr ? "مشاهدة على فيميو" : "Watch on Vimeo"}
+                          </span>
+                        </span>
+                      ) : (
+                        <span className="flex items-center gap-1.5 text-sky-400">
+                          <ExternalLink className="h-3.5 w-3.5" />
+                          <span className="text-white font-medium">
+                            {isAr ? "فتح الرابط الخارجي" : "Open Video Directly"}
+                          </span>
+                        </span>
+                      )}
+                      <ExternalLink className="h-3 w-3 text-slate-400 ml-0.5 rtl:mr-0.5 rtl:ml-0" />
+                    </a>
+                  ) : <div />}
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setVideoPlaying(false);
+                      setVideoLoading(false);
+                      setVideoError(false);
+                    }}
+                    className="pointer-events-auto inline-flex items-center gap-1.5 rounded-full bg-slate-950/80 px-3 py-1.5 text-xs font-medium text-slate-300 shadow-lg backdrop-blur-md border border-white/15 hover:text-white hover:bg-slate-900 hover:border-white/30 transition"
+                    title={isAr ? "العودة للغلاف" : "Back to preview"}
+                  >
+                    <X className="h-3.5 w-3.5" />
+                    <span className="hidden sm:inline">{isAr ? "إغلاق المشغل" : "Close Player"}</span>
+                  </button>
+                </div>
+
+                {/* Loading state overlay with luxury spinner */}
+                {videoLoading && !videoError && (
+                  <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-slate-950/90 backdrop-blur-sm transition-opacity duration-300">
+                    <div className="relative flex items-center justify-center">
+                      <div className="absolute -inset-2 rounded-full bg-sky-500/20 blur-md animate-pulse" />
+                      <Loader2 className="h-10 w-10 animate-spin text-sky-400 relative z-10" />
+                    </div>
+                    <p className="mt-4 text-sm font-semibold text-white tracking-wide">
+                      {isAr ? "جارٍ تحميل العرض السينمائي..." : "Loading Cinematic Tour..."}
+                    </p>
+                    <p className="mt-1 text-xs text-slate-400">
+                      {isAr ? "الاتصال بالبث المباشر عالي الدقة" : "Connecting to high-definition video stream"}
+                    </p>
+                  </div>
+                )}
+
+                {/* Fallback error overlay */}
+                {videoError || (!parsedVideo.isValid && videoPlaying) ? (
+                  <div className="absolute inset-0 z-15 flex flex-col items-center justify-center bg-slate-950/95 p-6 text-center">
+                    <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-400 shadow-[0_0_25px_rgba(245,158,11,0.2)]">
+                      <AlertCircle className="h-7 w-7" />
+                    </div>
+                    <h4 className="mt-4 text-lg font-bold text-white">
+                      {isAr ? "تعذر تشغيل العرض المضمن مباشرة" : "Direct Video Player Unavailable"}
+                    </h4>
+                    <p className="mt-2 text-xs sm:text-sm text-slate-400 max-w-md leading-relaxed">
+                      {isAr
+                        ? "قد تفرض قيود الشبكة أو المتصفح حظراً على التضمين الداخلي للمقطع. يمكنك مشاهدة العرض السينمائي كاملاً مباشرة على المنصة الأصلية."
+                        : "Your browser or network policy may restrict direct video embedding. You can view the full cinematic presentation in high definition on the source platform."}
+                    </p>
+                    <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
+                      {parsedVideo.watchUrl && (
+                        <a
+                          href={parsedVideo.watchUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-sky-400 to-cyan-400 px-5 py-2.5 text-xs sm:text-sm font-bold text-slate-950 shadow-[0_0_25px_rgba(56,189,248,0.4)] hover:brightness-110 active:scale-95 transition"
+                        >
+                          {parsedVideo.provider === "youtube" ? (
+                            <YouTubeIcon className="h-4 w-4 fill-slate-950" />
+                          ) : (
+                            <ExternalLink className="h-4 w-4" />
+                          )}
+                          <span>
+                            {isAr ? "فتح العرض على يوتيوب ↗" : "Watch Directly on YouTube ↗"}
+                          </span>
+                        </a>
+                      )}
+                      <button
+                        type="button"
+                        onClick={handleRetryVideo}
+                        className="inline-flex items-center gap-1.5 rounded-xl border border-white/15 bg-white/5 px-4 py-2.5 text-xs sm:text-sm font-medium text-slate-300 hover:bg-white/10 hover:text-white transition"
+                      >
+                        <RefreshCw className="h-3.5 w-3.5" />
+                        <span>{isAr ? "إعادة المحاولة" : "Retry Player"}</span>
+                      </button>
+                    </div>
+                  </div>
+                ) : null}
+
+                {/* Active Player Renderers */}
+                {parsedVideo.provider === "youtube" && parsedVideo.embedUrl ? (
                   <iframe
-                    src={
-                      videoUrl.includes("watch?v=")
-                        ? videoUrl.replace("watch?v=", "embed/") + "?autoplay=1"
-                        : videoUrl.includes("youtu.be/")
-                        ? videoUrl.replace("youtu.be/", "www.youtube.com/embed/") + "?autoplay=1"
-                        : videoUrl
-                    }
+                    key={`yt-player-${videoKey}`}
+                    src={parsedVideo.embedUrl}
                     title={`${title} Video Tour`}
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                     allowFullScreen
+                    referrerPolicy="strict-origin-when-cross-origin"
+                    loading="lazy"
+                    onLoad={() => setVideoLoading(false)}
+                    onError={() => {
+                      setVideoLoading(false);
+                      setVideoError(true);
+                    }}
                     className="h-full w-full border-0"
                   />
-                ) : videoUrl.includes("vimeo.com") ? (
+                ) : parsedVideo.provider === "vimeo" && parsedVideo.embedUrl ? (
                   <iframe
-                    src={videoUrl.replace("vimeo.com/", "player.vimeo.com/video/") + "?autoplay=1"}
+                    key={`vimeo-player-${videoKey}`}
+                    src={parsedVideo.embedUrl}
                     title={`${title} Video Tour`}
                     allow="autoplay; fullscreen; picture-in-picture"
                     allowFullScreen
+                    referrerPolicy="strict-origin-when-cross-origin"
+                    loading="lazy"
+                    onLoad={() => setVideoLoading(false)}
+                    onError={() => {
+                      setVideoLoading(false);
+                      setVideoError(true);
+                    }}
                     className="h-full w-full border-0"
                   />
                 ) : (
-                  <video src={videoUrl} controls autoPlay className="h-full w-full object-cover" />
+                  <video
+                    src={parsedVideo.embedUrl || videoUrl}
+                    controls
+                    autoPlay
+                    onLoadedData={() => setVideoLoading(false)}
+                    onError={() => {
+                      setVideoLoading(false);
+                      setVideoError(true);
+                    }}
+                    className="h-full w-full object-cover"
+                  />
                 )}
               </div>
             ) : (
@@ -1940,20 +2118,7 @@ Client Note: ${message}`,
                 <div className="absolute inset-0 flex flex-col items-center justify-center p-6 text-center">
                   <button
                     type="button"
-                    onClick={() => {
-                      if (videoUrl) {
-                        setVideoPlaying(true);
-                      } else {
-                        window.open(
-                          getWhatsAppInquiryUrl(
-                            isAr
-                              ? `مرحباً، أود طلب جولة افتراضية مسجلة بالفيديو لمشروع ${title}`
-                              : `Hello, I would like to request the virtual video walkthrough for ${title}`
-                          ),
-                          "_blank"
-                        );
-                      }
-                    }}
+                    onClick={handleStartVideo}
                     className="flex h-20 w-20 items-center justify-center rounded-full bg-gradient-to-r from-sky-400 to-cyan-400 text-slate-950 shadow-[0_0_35px_rgba(56,189,248,0.5)] transition hover:scale-110 active:scale-95"
                     aria-label="Play Video"
                   >
@@ -1977,6 +2142,28 @@ Client Note: ${message}`,
                       ? "تواصل مع خبرائنا للحصول على جولة مصورة حصرية ومباشرة للمشروع."
                       : "Connect with our advisory consultants for an exclusive private video consultation."}
                   </p>
+
+                  {/* Secondary direct YouTube action if URL is available */}
+                  {parsedVideo.isValid && parsedVideo.watchUrl && (
+                    <div className="mt-4">
+                      <a
+                        href={parsedVideo.watchUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1.5 rounded-full border border-white/20 bg-slate-950/60 px-4 py-1.5 text-xs font-medium text-slate-300 backdrop-blur-sm hover:border-sky-400/50 hover:text-white transition"
+                      >
+                        {parsedVideo.provider === "youtube" ? (
+                          <YouTubeIcon className="h-3.5 w-3.5 fill-red-500 text-red-500" />
+                        ) : (
+                          <ExternalLink className="h-3.5 w-3.5 text-sky-400" />
+                        )}
+                        <span>
+                          {isAr ? "أو شاهد مباشرة على يوتيوب" : "Or open directly on YouTube"}
+                        </span>
+                        <ExternalLink className="h-3 w-3 text-slate-400" />
+                      </a>
+                    </div>
+                  )}
                 </div>
               </div>
             )}
