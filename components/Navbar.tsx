@@ -12,19 +12,19 @@ export default function Navbar() {
   const nav = dictionary.nav;
 
   const links = [
-    { href: `/${language}#home`, label: nav.home },
-    { href: `/${language}#about`, label: nav.about },
-    { href: `/${language}#projects`, label: nav.projects },
-    { href: `/${language}#services`, label: nav.services },
-    { href: `/${language}#values`, label: language === "ar" ? "رؤيتنا" : "Why Us" },
-    { href: `/${language}#contact`, label: nav.contact },
+    { href: `/${language}/#home`, label: nav.home },
+    { href: `/${language}/#about`, label: nav.about },
+    { href: `/${language}/#projects`, label: nav.projects },
+    { href: `/${language}/#services`, label: nav.services },
+    { href: `/${language}/#values`, label: language === "ar" ? "رؤيتنا" : "Why Us" },
+    { href: `/${language}/#contact`, label: nav.contact },
   ];
 
   return (
     <header className="sticky top-0 z-50 m-0 -mb-[1px] bg-slate-950/70 backdrop-blur-xl">
       <nav className="mx-auto flex min-h-20 md:min-h-28 max-w-7xl items-center justify-between px-4 py-3 md:px-8 md:py-4 m-0 mb-0">
         <Link
-          href={language === "ar" ? "/ar" : "/en"}
+          href={language === "ar" ? "/ar/" : "/en/"}
           className="flex items-center shrink-0 focus:outline-none"
         >
           {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -48,7 +48,7 @@ export default function Navbar() {
           ))}
           <LanguageToggle language={language} onToggle={toggleLanguage} />
           <Link
-            href={`/${language}#contact`}
+            href={`/${language}/#contact`}
             className="rounded-full bg-gradient-to-r from-sky-400 to-cyan-300 px-4 py-2 text-xs lg:px-5 lg:py-2.5 lg:text-sm font-semibold text-slate-950 shadow-[0_0_24px_rgba(56,189,248,0.35)] transition-all hover:shadow-[0_0_36px_rgba(56,189,248,0.55)] hover:-translate-y-0.5 active:translate-y-0 shrink-0"
           >
             {nav.getStarted}
@@ -84,7 +84,7 @@ export default function Navbar() {
               </Link>
             ))}
             <Link
-              href={`/${language}#contact`}
+              href={`/${language}/#contact`}
               onClick={() => setIsOpen(false)}
               className="mt-3 rounded-full bg-gradient-to-r from-sky-400 to-cyan-300 px-4 py-2.5 text-center text-sm font-semibold text-slate-950 shadow-[0_0_20px_rgba(56,189,248,0.35)]"
             >
@@ -109,12 +109,14 @@ function LanguageToggle({
 
   const getPathForLocale = (target: "en" | "ar") => {
     if (pathname.startsWith("/ar")) {
-      return pathname.replace(/^\/ar/, target === "en" ? "/en" : "/ar") || `/${target}`;
+      const replaced = pathname.replace(/^\/ar/, `/${target}`);
+      return replaced.endsWith("/") ? replaced : `${replaced}/`;
     }
     if (pathname.startsWith("/en")) {
-      return pathname.replace(/^\/en/, target === "ar" ? "/ar" : "/en") || `/${target}`;
+      const replaced = pathname.replace(/^\/en/, `/${target}`);
+      return replaced.endsWith("/") ? replaced : `${replaced}/`;
     }
-    return `/${target}`;
+    return `/${target}/`;
   };
 
   const enHref = getPathForLocale("en");

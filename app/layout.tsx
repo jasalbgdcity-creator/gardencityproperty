@@ -32,11 +32,11 @@ export const metadata: Metadata = {
   publisher: "Garden City Properties",
   metadataBase: new URL("https://www.gardencityproperties.net"),
   alternates: {
-    canonical: "/en",
+    canonical: "https://www.gardencityproperties.net/",
     languages: {
-      "en-OM": "/en",
-      "ar-OM": "/ar",
-      "x-default": "/en",
+      "en-OM": "https://www.gardencityproperties.net/en/",
+      "ar-OM": "https://www.gardencityproperties.net/ar/",
+      "x-default": "https://www.gardencityproperties.net/",
     },
   },
   openGraph: {
@@ -69,8 +69,12 @@ export const metadata: Metadata = {
   icons: {
     icon: [
       { url: "/favicon.ico", sizes: "any" },
+      { url: "/icon.png", type: "image/png", sizes: "48x48" },
+      { url: "/icon.png", type: "image/png", sizes: "96x96" },
+      { url: "/icon.png", type: "image/png", sizes: "192x192" },
       { url: "/icon.png", type: "image/png", sizes: "512x512" },
     ],
+    shortcut: ["/favicon.ico"],
     apple: [
       { url: "/icon.png", sizes: "180x180", type: "image/png" },
     ],
@@ -97,6 +101,13 @@ export default function RootLayout({ children }: { children: ReactNode }) {
       className="dark h-full antialiased"
     >
       <head>
+        <link rel="icon" href="/favicon.ico" sizes="any" />
+        <link rel="icon" type="image/png" sizes="48x48" href="/icon.png" />
+        <link rel="icon" type="image/png" sizes="96x96" href="/icon.png" />
+        <link rel="icon" type="image/png" sizes="192x192" href="/icon.png" />
+        <link rel="icon" type="image/png" sizes="512x512" href="/icon.png" />
+        <link rel="shortcut icon" href="/favicon.ico" />
+        <link rel="apple-touch-icon" sizes="180x180" href="/icon.png" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link
           rel="preconnect"
@@ -200,7 +211,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
                     "target": {
                       "@type": "EntryPoint",
                       "urlTemplate":
-                        "https://www.gardencityproperties.net/en?search={search_term_string}",
+                        "https://www.gardencityproperties.net/en/?search={search_term_string}",
                     },
                     "query-input": "required name=search_term_string",
                   },

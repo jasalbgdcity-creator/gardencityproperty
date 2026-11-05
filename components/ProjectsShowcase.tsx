@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import {
   AlertCircle,
   Building2,
@@ -689,20 +690,36 @@ export default function ProjectsShowcase() {
                   </div>
                 </div>
 
-                {/* WhatsApp Action CTA Button */}
-                <a
-                  href="https://wa.me/message/BACRFFVZ3LOXH1"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex w-full items-center justify-center gap-2.5 rounded-xl bg-emerald-500 px-6 py-3.5 text-sm font-bold text-slate-950 shadow-[0_0_24px_rgba(16,185,129,0.35)] transition hover:bg-emerald-400 active:scale-[0.99]"
-                >
-                  <WhatsAppIcon className="h-5 w-5 fill-slate-950" />
-                  <span>
-                    {language === "ar"
-                      ? "تسجيل الاهتمام عبر واتساب"
-                      : "Register Interest via WhatsApp"}
-                  </span>
-                </a>
+                {/* Action CTA Buttons: Transition to Dedicated Page & WhatsApp */}
+                <div className="flex flex-col sm:flex-row items-center gap-3">
+                  <Link
+                    href={`/${language}/projects/${selectedProject.id}/`}
+                    className="flex w-full sm:flex-1 items-center justify-center gap-2 rounded-xl border border-sky-400/40 bg-sky-500/10 px-5 py-3.5 text-xs sm:text-sm font-semibold text-sky-300 backdrop-blur-md transition hover:border-sky-300/70 hover:bg-sky-500/20 active:scale-[0.99]"
+                  >
+                    <span>
+                      {copy.viewFullPage ||
+                        (language === "ar" ? "عرض كامل التفاصيل" : "View Full Details")}
+                    </span>
+                    <ChevronRight className="h-4 w-4 rtl:rotate-180" />
+                  </Link>
+                  <a
+                    href={`https://wa.me/message/BACRFFVZ3LOXH1?text=${encodeURIComponent(
+                      language === "ar"
+                        ? `مرحباً، أود الاستفسار عن مشروع ${selectedProject.name}`
+                        : `Hello, I would like to inquire about ${selectedProject.name}`
+                    )}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex w-full sm:flex-1 items-center justify-center gap-2 rounded-xl bg-emerald-500 px-5 py-3.5 text-xs sm:text-sm font-bold text-slate-950 shadow-[0_0_24px_rgba(16,185,129,0.35)] transition hover:bg-emerald-400 active:scale-[0.99]"
+                  >
+                    <WhatsAppIcon className="h-5 w-5 fill-slate-950" />
+                    <span>
+                      {language === "ar"
+                        ? "تسجيل الاهتمام"
+                        : "Register Interest"}
+                    </span>
+                  </a>
+                </div>
               </div>
             </div>
           </div>

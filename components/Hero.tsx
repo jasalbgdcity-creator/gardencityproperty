@@ -34,7 +34,7 @@ export default function Hero() {
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
-          className="mb-5 inline-flex w-fit items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-1.5 text-xs font-semibold tracking-[0.22em] text-sky-300 uppercase backdrop-blur-md"
+          className="mb-5 inline-flex w-fit items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-1.5 text-xs font-semibold tracking-[0.22em] text-sky-300 uppercase backdrop-blur-md rtl:tracking-normal rtl:font-[family-name:var(--font-cairo)]"
         >
           {copy.badge}
         </motion.p>
@@ -42,7 +42,7 @@ export default function Hero() {
           initial={{ opacity: 0, y: 22 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.1 }}
-          className="max-w-4xl font-[family-name:var(--font-outfit)] text-4xl leading-tight font-semibold text-white sm:text-5xl lg:text-6xl"
+          className="max-w-4xl font-[family-name:var(--font-outfit)] rtl:font-[family-name:var(--font-cairo)] text-4xl leading-tight font-semibold text-white sm:text-5xl lg:text-6xl rtl:leading-snug"
         >
           {copy.title}
         </motion.h1>
@@ -50,7 +50,7 @@ export default function Hero() {
           initial={{ opacity: 0, y: 22 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.2 }}
-          className="mt-6 max-w-2xl text-lg leading-relaxed text-slate-300"
+          className="mt-6 max-w-2xl text-lg leading-relaxed text-slate-300 rtl:font-[family-name:var(--font-cairo)]"
         >
           {copy.subtitle}
         </motion.p>

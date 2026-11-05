@@ -5,44 +5,44 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = "https://www.gardencityproperties.net";
   const now = new Date();
 
-  // 1. Clean Top-Level Canonical Routes (Strictly valid document URIs without hash fragments)
+  // 1. Clean Top-Level Canonical Routes with Trailing Slashes (matches trailingSlash: true)
   const coreRoutes: MetadataRoute.Sitemap = [
     {
-      url: baseUrl,
+      url: `${baseUrl}/`,
       lastModified: now,
       changeFrequency: "weekly",
       priority: 1.0,
       alternates: {
         languages: {
-          "en-OM": `${baseUrl}/en`,
-          "ar-OM": `${baseUrl}/ar`,
-          "x-default": `${baseUrl}/en`,
+          "en-OM": `${baseUrl}/en/`,
+          "ar-OM": `${baseUrl}/ar/`,
+          "x-default": `${baseUrl}/`,
         },
       },
     },
     {
-      url: `${baseUrl}/en`,
+      url: `${baseUrl}/en/`,
       lastModified: now,
       changeFrequency: "weekly",
       priority: 1.0,
       alternates: {
         languages: {
-          "en-OM": `${baseUrl}/en`,
-          "ar-OM": `${baseUrl}/ar`,
-          "x-default": `${baseUrl}/en`,
+          "en-OM": `${baseUrl}/en/`,
+          "ar-OM": `${baseUrl}/ar/`,
+          "x-default": `${baseUrl}/`,
         },
       },
     },
     {
-      url: `${baseUrl}/ar`,
+      url: `${baseUrl}/ar/`,
       lastModified: now,
       changeFrequency: "weekly",
       priority: 1.0,
       alternates: {
         languages: {
-          "en-OM": `${baseUrl}/en`,
-          "ar-OM": `${baseUrl}/ar`,
-          "x-default": `${baseUrl}/en`,
+          "en-OM": `${baseUrl}/en/`,
+          "ar-OM": `${baseUrl}/ar/`,
+          "x-default": `${baseUrl}/`,
         },
       },
     },
@@ -67,28 +67,28 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
         return [
           {
-            url: `${baseUrl}/en/projects/${projectId}`,
+            url: `${baseUrl}/en/projects/${projectId}/`,
             lastModified: validLastMod,
             changeFrequency: "weekly" as const,
             priority: 0.85,
             alternates: {
               languages: {
-                "en-OM": `${baseUrl}/en/projects/${projectId}`,
-                "ar-OM": `${baseUrl}/ar/projects/${projectId}`,
-                "x-default": `${baseUrl}/en/projects/${projectId}`,
+                "en-OM": `${baseUrl}/en/projects/${projectId}/`,
+                "ar-OM": `${baseUrl}/ar/projects/${projectId}/`,
+                "x-default": `${baseUrl}/en/projects/${projectId}/`,
               },
             },
           },
           {
-            url: `${baseUrl}/ar/projects/${projectId}`,
+            url: `${baseUrl}/ar/projects/${projectId}/`,
             lastModified: validLastMod,
             changeFrequency: "weekly" as const,
             priority: 0.85,
             alternates: {
               languages: {
-                "en-OM": `${baseUrl}/en/projects/${projectId}`,
-                "ar-OM": `${baseUrl}/ar/projects/${projectId}`,
-                "x-default": `${baseUrl}/en/projects/${projectId}`,
+                "en-OM": `${baseUrl}/en/projects/${projectId}/`,
+                "ar-OM": `${baseUrl}/ar/projects/${projectId}/`,
+                "x-default": `${baseUrl}/en/projects/${projectId}/`,
               },
             },
           },
