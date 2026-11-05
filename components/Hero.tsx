@@ -14,19 +14,21 @@ export default function Hero() {
       {/* Background Image Container */}
       <div className="absolute inset-0 z-0 bg-[#050816]">
         <Image
-          src="/bg1stpage.jpeg"
+          src="/Oasis Fortress at Dusk.png"
           alt="Garden City Properties - Premium Real Estate Consultancy and Property Brokerage in Oman"
           fill
           priority={true}
-          quality={100}
+          quality={95}
           sizes="100vw"
-          className="object-cover object-center brightness-110 contrast-125"
+          className="object-cover object-center brightness-[0.92] contrast-[1.08]"
         />
       </div>
 
-      {/* Refined Directional Gradient Overlay */}
-      <div className="absolute inset-0 z-0 bg-gradient-to-r from-slate-950/90 via-slate-900/50 to-transparent rtl:bg-gradient-to-l" />
-      <div className="absolute inset-x-0 bottom-0 z-0 h-28 bg-gradient-to-t from-[#050816] to-transparent" />
+      {/* Refined Luxury Dark Overlays for Peak Legibility & Contrast */}
+      <div className="absolute inset-0 z-0 bg-slate-950/35" />
+      <div className="absolute inset-0 z-0 bg-gradient-to-r from-slate-950/95 via-slate-950/70 to-slate-950/20 rtl:bg-gradient-to-l" />
+      <div className="absolute inset-x-0 top-0 z-0 h-32 bg-gradient-to-b from-slate-950/80 via-slate-950/30 to-transparent" />
+      <div className="absolute inset-x-0 bottom-0 z-0 h-32 bg-gradient-to-t from-[#050816] via-[#050816]/70 to-transparent" />
 
       {/* Foreground Content */}
       <div className="relative z-10 mx-auto flex min-h-[92vh] max-w-7xl flex-col justify-center px-4 py-24 sm:py-28 md:px-8">
