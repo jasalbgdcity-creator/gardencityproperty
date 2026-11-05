@@ -31,7 +31,7 @@ export default function Services() {
             {copy.eyebrow}
           </p>
           {copy.title ? (
-            <h2 className="mt-3 font-[family-name:var(--font-outfit)] text-3xl font-semibold text-white sm:text-4xl">
+            <h2 className="mt-3 font-serif text-3xl font-semibold tracking-tight text-white sm:text-4xl lg:text-5xl rtl:font-[family-name:var(--font-cairo)] rtl:tracking-normal rtl:font-bold">
               {copy.title}
             </h2>
           ) : null}

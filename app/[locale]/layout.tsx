@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import { notFound } from "next/navigation";
 import { LanguageProvider, type Language } from "@/context/LanguageContext";
 import LanguageShell from "@/components/LanguageShell";
+import FloatingWhatsApp from "@/components/FloatingWhatsApp";
 
 export function generateStaticParams() {
   return [{ locale: "en" }, { locale: "ar" }];
@@ -178,6 +179,7 @@ export default async function LocaleLayout({
           }}
         />
         {children}
+        <FloatingWhatsApp />
       </LanguageShell>
     </LanguageProvider>
   );

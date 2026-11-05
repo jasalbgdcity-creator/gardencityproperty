@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, useId, FormEvent } from "react";
+import { useState, useEffect, useCallback, useId, useMemo, FormEvent } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
@@ -37,38 +37,92 @@ import {
   Bath,
   ExternalLink,
   Send,
+  Landmark,
 } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
+import {
+  getProjectWhatsAppUrl,
+  getConfigurationWhatsAppUrl,
+  getGeneralWhatsAppUrl,
+} from "@/lib/whatsapp";
+import { renderAmenityIcon, renderMilestoneIcon } from "@/lib/projectIcons";
 
 export interface PropertyConfiguration {
   id?: string;
-  type: string;
-  title: string;
+  property_type?: string;
+  type?: string;
+  name?: string;
+  title?: string;
+  name_ar?: string;
   titleAr?: string;
-  bedrooms: number | string;
-  bathrooms: number | string;
-  bua: string;
+  bedrooms?: number | string;
+  bathrooms?: number | string;
+  balconies?: number | string;
+  bua?: string;
+  bua_sqm?: number | string;
   plot?: string;
+  plot_sqm?: number | string;
   price?: string;
+  currency?: string;
+  availability?: string;
+  availability_status?: string;
+  furnishing?: string;
+  furnishing_status?: string;
+  parking?: string;
+  parking_info?: string;
+  features?: string[];
   floorPlanUrl?: string;
+  floor_plan_url?: string;
   description?: string;
   descriptionAr?: string;
+  description_ar?: string;
+  is_featured?: boolean;
 }
 
 export interface AmenityItem {
+  id?: string;
   icon?: string;
   name: string;
   nameAr?: string;
+  name_ar?: string;
   description?: string;
   descriptionAr?: string;
+  description_ar?: string;
+  category?: string;
+  image_url?: string;
+  display_order?: number;
+  is_published?: boolean;
+  is_active?: boolean;
+}
+
+export interface PaymentMilestone {
+  id?: string;
+  step_number?: number | string;
+  title: string;
+  title_ar?: string;
+  titleAr?: string;
+  percentage: string;
+  description: string;
+  description_ar?: string;
+  descriptionAr?: string;
+  detailed_description?: string;
+  icon?: string;
+  display_order?: number;
+  is_active?: boolean;
 }
 
 export interface NearbyLocation {
+  id?: string;
   name: string;
   nameAr?: string;
-  time: string;
+  name_ar?: string;
+  time?: string;
   timeAr?: string;
+  travel_time_text?: string;
+  travel_time_minutes?: number;
   category?: string;
+  distance_km?: number | string;
+  google_maps_url?: string;
 }
 
 export interface ProjectData {
@@ -97,7 +151,38 @@ export interface ProjectData {
   description?: string;
   hero_video_url?: string;
   brochure_url?: string;
-  amenities?: AmenityItem[];
+  google_maps_url?: string;
+  formatted_address?: string;
+  city?: string;
+  country?: string;
+  latitude?: number;
+  longitude?: number;
+  amenities_enabled?: boolean;
+  amenities_label?: string;
+  amenities_label_ar?: string;
+  amenities_heading?: string;
+  amenities_heading_ar?: string;
+  amenities_subtitle?: string;
+  amenities_subtitle_ar?: string;
+  amenities?: (AmenityItem | string)[];
+  investment_enabled?: boolean;
+  investment_label?: string;
+  investment_label_ar?: string;
+  investment_heading?: string;
+  investment_heading_ar?: string;
+  investment_subtitle?: string;
+  investment_subtitle_ar?: string;
+  payment_milestones?: PaymentMilestone[];
+  mortgage_enabled?: boolean;
+  mortgage_title?: string;
+  mortgage_title_ar?: string;
+  mortgage_status?: string;
+  mortgage_status_ar?: string;
+  mortgage_description?: string;
+  mortgage_description_ar?: string;
+  mortgage_banks?: string;
+  mortgage_additional_info?: string;
+  mortgage_display_order?: number;
   property_configurations?: PropertyConfiguration[];
   nearby_locations?: NearbyLocation[];
   property_highlights?: Array<{ label: string; labelAr?: string; value: string; icon?: string }>;
@@ -264,7 +349,11 @@ export default function ProjectPresentation({
 
   // Form state
   const [enquiryConfig, setEnquiryConfig] = useState<string>(
-    activeConf ? (isAr ? activeConf.titleAr || activeConf.title : activeConf.title) : ""
+    (activeConf
+      ? isAr
+        ? activeConf.name_ar || activeConf.titleAr || activeConf.name || activeConf.title
+        : activeConf.name || activeConf.title
+      : "") || ""
   );
   const [formSubmitting, setFormSubmitting] = useState(false);
   const [formStatus, setFormStatus] = useState<{ type: "success" | "error"; text: string } | null>(
@@ -274,14 +363,33 @@ export default function ProjectPresentation({
   // Brochure modal / feedback
   const [brochureRequested, setBrochureRequested] = useState(false);
 
-  // WhatsApp inquiry URL generator
+  // WhatsApp inquiry URL generator using centralized standard helper
   const getWhatsAppInquiryUrl = (customText?: string) => {
-    const text =
-      customText ||
-      (isAr
-        ? `مرحباً، أود الاستفسار عن تفاصيل مشروع ${title} في ${location}.`
-        : `Hello Garden City Properties, I would like to inquire about ${title} in ${location}.`);
-    return `https://wa.me/message/BACRFFVZ3LOXH1?text=${encodeURIComponent(text)}`;
+    if (customText) {
+      return getGeneralWhatsAppUrl({ message: customText });
+    }
+    return getProjectWhatsAppUrl({
+      projectName: title,
+      location: location,
+      startingPrice: price,
+      language: isAr ? "ar" : "en",
+    });
+  };
+
+  const getConfWhatsAppUrl = (conf: PropertyConfiguration) => {
+    const confName = isAr
+      ? conf.name_ar || conf.titleAr || conf.name || conf.title || "وحدة سكنية"
+      : conf.name || conf.title || "Residential Unit";
+    const confPrice = conf.price || price;
+    const confBua = conf.bua_sqm || conf.bua || "";
+    return getConfigurationWhatsAppUrl({
+      projectName: title,
+      configurationName: confName,
+      bedrooms: conf.bedrooms,
+      bua: confBua,
+      price: confPrice,
+      language: isAr ? "ar" : "en",
+    });
   };
 
   // Scroll to section helper
@@ -361,68 +469,182 @@ Client Note: ${message}`,
     }
   }
 
-  // Amenities list
-  const amenitiesList: AmenityItem[] =
-    Array.isArray(project.amenities) && project.amenities.length > 0
-      ? project.amenities
-      : [
-          {
-            icon: "Waves",
-            name: "Infinity Edge Swimming Pool",
-            nameAr: "مسبح إنفينيتي بإطلالة بانورامية",
-            description: "Temperature-controlled swimming pool with dedicated resort-style sun deck.",
-            descriptionAr: "مسبح يتم التحكم في درجة حرارته مع تراس استجمام شمسي على الطراز الفندقي.",
-          },
-          {
-            icon: "Dumbbell",
-            name: "State-of-the-Art Fitness Center",
-            nameAr: "صالة لياقة بدنية ونادٍ صحي متكامل",
-            description: "Equipped with high-end cardio and strength machinery with personal trainer suites.",
-            descriptionAr: "مجهزة بأحدث أجهزة تمارين اللياقة والقوة مع غرف تدريب متخصصة.",
-          },
-          {
-            icon: "Trees",
-            name: "Landscaped Parks & Jogging Track",
-            nameAr: "حدائق خضراء ومسارات مشي وركض",
-            description: "Lush botanical gardens, shaded walking promenades, and serene open-air pavilions.",
-            descriptionAr: "حدائق نباتية غناء ومسارات مشي مظللة وجلسات خارجية هادئة.",
-          },
-          {
-            icon: "ShieldCheck",
-            name: "24/7 Gated Security & Concierge",
-            nameAr: "أمن وحراسة على مدار الساعة وخدمة استقبال",
-            description: "Access-controlled entry gates, AI-enhanced surveillance, and round-the-clock reception.",
-            descriptionAr: "بوابات دخول ذكية، كاميرات مراقبة متطورة، وخدمة استقبال وضيافة على مدار الساعة.",
-          },
-          {
-            icon: "Car",
-            name: "Covered Parking & EV Charging",
-            nameAr: "مواقف سيارات مظللة وشواحن كهربائية",
-            description: "Secured private basement parking with dedicated high-speed EV charging stations.",
-            descriptionAr: "مواقف خاصة آمنة ومظللة مع محطات شحن سريعة للسيارات الكهربائية.",
-          },
-          {
-            icon: "Building2",
-            name: "Boutique Retail & Dining Promenade",
-            nameAr: "ممشى تجاري ومطاعم ومقاهٍ راقية",
-            description: "Curated collection of artisan cafes, specialty grocery, and essential everyday conveniences.",
-            descriptionAr: "تشكيلة مختارة من المقاهي العصرية ومنافذ التسوق والمرافق الخدمية اليومية.",
-          },
-          {
-            icon: "Sparkles",
-            name: "Children's Adventure Play Zone",
-            nameAr: "منطقة ألعاب آمنة وممتعة للأطفال",
-            description: "Modern, secure outdoor and indoor play areas crafted with child-safe rubberized flooring.",
-            descriptionAr: "مساحات ألعاب تفاعلية داخلية وخارجية صممت بأعلى معايير الأمان والسلامة.",
-          },
-          {
-            icon: "Compass",
-            name: "Executive Lounge & Business Hub",
-            nameAr: "صالة رجال الأعمال ومركز عمل متطور",
-            description: "Quiet work lounges, private meeting rooms, and high-speed Wi-Fi infrastructure.",
-            descriptionAr: "مساحات عمل مريحة وهادئة وغرف اجتماعات خاصة مجهزة ببنية اتصالات فائقة السرعة.",
-          },
-        ];
+  // Fallback default amenities
+  const defaultAmenities: AmenityItem[] = [
+    {
+      icon: "Waves",
+      name: "Infinity Edge Swimming Pool",
+      nameAr: "مسبح إنفينيتي بإطلالة بانورامية",
+      description: "Temperature-controlled swimming pool with dedicated resort-style sun deck.",
+      descriptionAr: "مسبح يتم التحكم في درجة حرارته مع تراس استجمام شمسي على الطراز الفندقي.",
+      is_active: true,
+      display_order: 1,
+    },
+    {
+      icon: "Dumbbell",
+      name: "State-of-the-Art Fitness Center",
+      nameAr: "صالة لياقة بدنية ونادٍ صحي متكامل",
+      description: "Equipped with high-end cardio and strength machinery with personal trainer suites.",
+      descriptionAr: "مجهزة بأحدث أجهزة تمارين اللياقة والقوة مع غرف تدريب متخصصة.",
+      is_active: true,
+      display_order: 2,
+    },
+    {
+      icon: "Trees",
+      name: "Landscaped Parks & Jogging Track",
+      nameAr: "حدائق خضراء ومسارات مشي وركض",
+      description: "Lush botanical gardens, shaded walking promenades, and serene open-air pavilions.",
+      descriptionAr: "حدائق نباتية غناء ومسارات مشي مظللة وجلسات خارجية هادئة.",
+      is_active: true,
+      display_order: 3,
+    },
+    {
+      icon: "ShieldCheck",
+      name: "24/7 Gated Security & Concierge",
+      nameAr: "أمن وحراسة على مدار الساعة وخدمة استقبال",
+      description: "Access-controlled entry gates, AI-enhanced surveillance, and round-the-clock reception.",
+      descriptionAr: "بوابات دخول ذكية، كاميرات مراقبة متطورة، وخدمة استقبال وضيافة على مدار الساعة.",
+      is_active: true,
+      display_order: 4,
+    },
+    {
+      icon: "Car",
+      name: "Covered Parking & EV Charging",
+      nameAr: "مواقف سيارات مظللة وشواحن كهربائية",
+      description: "Secured private basement parking with dedicated high-speed EV charging stations.",
+      descriptionAr: "مواقف خاصة آمنة ومظللة مع محطات شحن سريعة للسيارات الكهربائية.",
+      is_active: true,
+      display_order: 5,
+    },
+    {
+      icon: "Building2",
+      name: "Boutique Retail & Dining Promenade",
+      nameAr: "ممشى تجاري ومطاعم ومقاهٍ راقية",
+      description: "Curated collection of artisan cafes, specialty grocery, and essential everyday conveniences.",
+      descriptionAr: "تشكيلة مختارة من المقاهي العصرية ومنافذ التسوق والمرافق الخدمية اليومية.",
+      is_active: true,
+      display_order: 6,
+    },
+    {
+      icon: "Sparkles",
+      name: "Children's Adventure Play Zone",
+      nameAr: "منطقة ألعاب آمنة وممتعة للأطفال",
+      description: "Modern, secure outdoor and indoor play areas crafted with child-safe rubberized flooring.",
+      descriptionAr: "مساحات ألعاب تفاعلية داخلية وخارجية صممت بأعلى معايير الأمان والسلامة.",
+      is_active: true,
+      display_order: 7,
+    },
+    {
+      icon: "Compass",
+      name: "Executive Lounge & Business Hub",
+      nameAr: "صالة رجال الأعمال ومركز عمل متطور",
+      description: "Quiet work lounges, private meeting rooms, and high-speed Wi-Fi infrastructure.",
+      descriptionAr: "مساحات عمل مريحة وهادئة وغرف اجتماعات خاصة مجهزة ببنية اتصالات فائقة السرعة.",
+      is_active: true,
+      display_order: 8,
+    },
+  ];
+
+  // Normalized amenities list supporting both rich objects and legacy string arrays
+  const amenitiesList: AmenityItem[] = useMemo(() => {
+    if (!Array.isArray(project.amenities) || project.amenities.length === 0) {
+      return defaultAmenities;
+    }
+    return project.amenities
+      .map((item, idx) => {
+        if (typeof item === "string") {
+          const str = item.trim();
+          let icon = "Sparkles";
+          const lower = str.toLowerCase();
+          if (lower.includes("pool") || lower.includes("water") || lower.includes("مسبح") || lower.includes("سباح")) icon = "Waves";
+          else if (lower.includes("gym") || lower.includes("fitness") || lower.includes("رياض") || lower.includes("لياق")) icon = "Dumbbell";
+          else if (lower.includes("park") || lower.includes("garden") || lower.includes("حديق") || lower.includes("شجر") || lower.includes("ممشى")) icon = "Trees";
+          else if (lower.includes("security") || lower.includes("guard") || lower.includes("أمن") || lower.includes("حراس")) icon = "ShieldCheck";
+          else if (lower.includes("car") || lower.includes("park") || lower.includes("موقف") || lower.includes("سيار")) icon = "Car";
+          else if (lower.includes("retail") || lower.includes("shop") || lower.includes("تسوق") || lower.includes("تجاري")) icon = "ShoppingBag";
+          else if (lower.includes("cafe") || lower.includes("coffee") || lower.includes("مقه")) icon = "Coffee";
+          else if (lower.includes("dine") || lower.includes("restaurant") || lower.includes("مطعم")) icon = "Utensils";
+          else if (lower.includes("kid") || lower.includes("play") || lower.includes("طفل") || lower.includes("أطفال")) icon = "Baby";
+          else if (lower.includes("smart") || lower.includes("home") || lower.includes("منزل") || lower.includes("ذكي")) icon = "Home";
+          else if (lower.includes("beach") || lower.includes("sun") || lower.includes("شاطئ") || lower.includes("بحر")) icon = "Sun";
+          else if (lower.includes("lounge") || lower.includes("business") || lower.includes("أعمال")) icon = "Building2";
+
+          return {
+            id: `legacy-${idx}`,
+            name: str,
+            nameAr: str,
+            name_ar: str,
+            description: isAr
+              ? "مرفق سكني حصري مصمم لراحة ورفاهية الملاك والسكان بأعلى المعايير."
+              : "Exclusive lifestyle facility designed for premium resident comfort and leisure.",
+            descriptionAr: "مرفق سكني حصري مصمم لراحة ورفاهية الملاك والسكان بأعلى المعايير.",
+            description_ar: "مرفق سكني حصري مصمم لراحة ورفاهية الملاك والسكان بأعلى المعايير.",
+            icon: icon,
+            is_active: true,
+            display_order: idx + 1,
+          };
+        }
+        return item;
+      })
+      .filter((item) => item && item.is_active !== false)
+      .sort((a, b) => (Number(a.display_order) || 0) - (Number(b.display_order) || 0));
+  }, [project.amenities, isAr]);
+
+  // Fallback default milestones
+  const defaultMilestones: PaymentMilestone[] = [
+    {
+      id: "ms-1",
+      step_number: "01",
+      title: "Down Payment",
+      titleAr: "الدفعة الأولى",
+      title_ar: "الدفعة الأولى",
+      percentage: "10% - 20%",
+      description: "Upon reservation and initial booking agreement confirmation",
+      descriptionAr: "عند حجز الوحدة وتأكيد العقد المبدئي",
+      description_ar: "عند حجز الوحدة وتأكيد العقد المبدئي",
+      icon: "Coins",
+      display_order: 1,
+      is_active: true,
+    },
+    {
+      id: "ms-2",
+      step_number: "02",
+      title: "Construction Linked",
+      titleAr: "أثناء البناء",
+      title_ar: "أثناء البناء",
+      percentage: "30% - 40%",
+      description: "Installments tied to verified construction progress milestones",
+      descriptionAr: "أقساط موزعة وفق مراحل إنجاز البناء المعتمدة رسمياً",
+      description_ar: "أقساط موزعة وفق مراحل إنجاز البناء المعتمدة رسمياً",
+      icon: "Building2",
+      display_order: 2,
+      is_active: true,
+    },
+    {
+      id: "ms-3",
+      step_number: "03",
+      title: "Handover Completion",
+      titleAr: "عند الاستلام",
+      title_ar: "عند الاستلام",
+      percentage: "40% - 50%",
+      description: "Upon final project handover, quality inspection and key delivery",
+      descriptionAr: "عند إنجاز المشروع، المعاينة الفنية واستلام المفاتيح",
+      description_ar: "عند إنجاز المشروع، المعاينة الفنية واستلام المفاتيح",
+      icon: "KeyRound",
+      display_order: 3,
+      is_active: true,
+    },
+  ];
+
+  // Normalized milestones list - returns empty array if no milestones configured, avoiding data fabrication
+  const milestonesList: PaymentMilestone[] = useMemo(() => {
+    if (!Array.isArray(project.payment_milestones) || project.payment_milestones.length === 0) {
+      return [];
+    }
+    return project.payment_milestones
+      .filter((m) => m && m.is_active !== false)
+      .sort((a, b) => (Number(a.display_order) || 0) - (Number(b.display_order) || 0));
+  }, [project.payment_milestones]);
 
   // Nearby landmarks
   const nearbyLandmarks: NearbyLocation[] =
@@ -526,7 +748,7 @@ Client Note: ${message}`,
 
           {/* Main Title & Developer */}
           <div className="max-w-4xl">
-            <h1 className="font-[family-name:var(--font-outfit)] rtl:font-[family-name:var(--font-cairo)] text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-white leading-[1.1]">
+            <h1 className="font-serif rtl:font-[family-name:var(--font-cairo)] text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-white leading-[1.1]">
               {title}
             </h1>
             <p className="mt-3 flex items-center gap-2 text-sm sm:text-base font-medium text-slate-300">
@@ -781,7 +1003,7 @@ Client Note: ${message}`,
           <div className="flex flex-col md:flex-row md:items-end justify-between mb-12">
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.25em] text-sky-400">
-                {copy.configurations || (isAr ? "نماذج ومخططات الوحدات" : "Property Types & Configurations")}
+                {copy.availableUnits || (isAr ? "نماذج ومخططات الوحدات المتاحة" : "Property Types & Available Units")}
               </p>
               <h2 className="mt-2 font-[family-name:var(--font-outfit)] rtl:font-[family-name:var(--font-cairo)] text-2xl sm:text-3xl font-bold text-white">
                 {isAr ? "خيارات سكنية واستثمارية مصممة بعناية" : "Bespoke Living Spaces & Floor Layouts"}
@@ -797,192 +1019,281 @@ Client Note: ${message}`,
 
           {/* Configuration Selection Tabs */}
           <div className="flex flex-wrap items-center gap-2 mb-8 border-b border-white/10 pb-4">
-            {configurations.map((conf, idx) => (
-              <button
-                key={conf.id || idx}
-                type="button"
-                onClick={() => setSelectedConfIndex(idx)}
-                className={`rounded-xl px-5 py-2.5 text-xs sm:text-sm font-semibold transition-all ${
-                  selectedConfIndex === idx
-                    ? "bg-gradient-to-r from-sky-400 to-cyan-400 text-slate-950 shadow-[0_0_20px_rgba(56,189,248,0.35)]"
-                    : "bg-slate-900/80 text-slate-300 border border-white/10 hover:bg-white/10"
-                }`}
-              >
-                {isAr ? conf.titleAr || conf.title : conf.title}
-              </button>
-            ))}
+            {configurations.map((conf, idx) => {
+              const tabTitle = isAr
+                ? conf.name_ar || conf.titleAr || conf.name || conf.title
+                : conf.name || conf.title;
+              return (
+                <button
+                  key={conf.id || idx}
+                  type="button"
+                  onClick={() => setSelectedConfIndex(idx)}
+                  className={`rounded-xl px-5 py-2.5 text-xs sm:text-sm font-semibold transition-all ${
+                    selectedConfIndex === idx
+                      ? "bg-gradient-to-r from-sky-400 to-cyan-400 text-slate-950 shadow-[0_0_20px_rgba(56,189,248,0.35)]"
+                      : "bg-slate-900/80 text-slate-300 border border-white/10 hover:bg-white/10"
+                  }`}
+                >
+                  {tabTitle}
+                </button>
+              );
+            })}
           </div>
 
           {/* Active Configuration Showcase Card */}
-          <div className="grid gap-8 lg:grid-cols-12 items-center rounded-3xl border border-white/10 bg-slate-900/70 p-6 sm:p-8 backdrop-blur-xl shadow-2xl">
-            {/* Visual Floor Plan Preview (7 cols) */}
-            <div className="lg:col-span-7 relative">
-              <div className="relative h-64 sm:h-96 w-full overflow-hidden rounded-2xl border border-white/10 bg-slate-950 flex items-center justify-center p-4">
-                {activeConf.floorPlanUrl ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={activeConf.floorPlanUrl}
-                    alt={activeConf.title}
-                    className="h-full w-full object-contain cursor-pointer transition hover:scale-105"
+          {activeConf && (
+            <div className="grid gap-8 lg:grid-cols-12 items-center rounded-3xl border border-white/10 bg-slate-900/70 p-6 sm:p-8 backdrop-blur-xl shadow-2xl">
+              {/* Visual Floor Plan Preview (7 cols) */}
+              <div className="lg:col-span-7 relative">
+                <div className="relative h-64 sm:h-96 w-full overflow-hidden rounded-2xl border border-white/10 bg-slate-950 flex items-center justify-center p-4">
+                  {(activeConf.floor_plan_url || activeConf.floorPlanUrl || floorPlanUrl) ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={activeConf.floor_plan_url || activeConf.floorPlanUrl || floorPlanUrl!}
+                      alt={activeConf.name || activeConf.title || "Floor plan"}
+                      className="h-full w-full object-contain cursor-pointer transition hover:scale-105"
+                      onClick={() => setFloorPlanModalOpen(true)}
+                    />
+                  ) : (
+                    <div className="flex flex-col items-center justify-center text-slate-500 text-xs">
+                      <Ruler className="h-8 w-8 mb-2 text-slate-600" />
+                      <span>{isAr ? "المخطط الهندسي متاح عند الطلب" : "Blueprint Available Upon Request"}</span>
+                    </div>
+                  )}
+                  <button
+                    type="button"
                     onClick={() => setFloorPlanModalOpen(true)}
-                  />
-                ) : (
-                  <div className="flex flex-col items-center justify-center text-slate-500 text-xs">
-                    <Ruler className="h-8 w-8 mb-2 text-slate-600" />
-                    <span>{isAr ? "المخطط الهندي قيد التجهيز" : "Blueprint Available Upon Request"}</span>
-                  </div>
-                )}
-                <button
-                  type="button"
-                  onClick={() => setFloorPlanModalOpen(true)}
-                  className="absolute bottom-4 right-4 rounded-xl bg-slate-950/80 px-3.5 py-2 text-xs font-semibold text-sky-400 border border-white/10 backdrop-blur-md hover:bg-slate-900 transition flex items-center gap-1.5"
-                >
-                  <Maximize2 className="h-3.5 w-3.5" />
-                  <span>{copy.viewFloorPlan || (isAr ? "تكبير المخطط" : "Enlarge Blueprint")}</span>
-                </button>
-              </div>
-            </div>
-
-            {/* Specifications & Direct Unit CTA (5 cols) */}
-            <div className="lg:col-span-5 flex flex-col justify-between space-y-6">
-              <div>
-                <span className="rounded-full bg-sky-500/10 border border-sky-400/20 px-3 py-1 text-xs font-semibold text-sky-400 uppercase">
-                  {activeConf.type}
-                </span>
-                <h3 className="font-[family-name:var(--font-outfit)] rtl:font-[family-name:var(--font-cairo)] text-2xl font-bold text-white mt-3">
-                  {isAr ? activeConf.titleAr || activeConf.title : activeConf.title}
-                </h3>
-                <p className="mt-2 text-xs sm:text-sm text-slate-300 leading-relaxed">
-                  {isAr
-                    ? activeConf.descriptionAr || activeConf.description
-                    : activeConf.description}
-                </p>
+                    className="absolute bottom-4 right-4 rounded-xl bg-slate-950/80 px-3.5 py-2 text-xs font-semibold text-sky-400 border border-white/10 backdrop-blur-md hover:bg-slate-900 transition flex items-center gap-1.5"
+                  >
+                    <Maximize2 className="h-3.5 w-3.5" />
+                    <span>{copy.viewFloorPlan || (isAr ? "تكبير المخطط" : "Enlarge Blueprint")}</span>
+                  </button>
+                </div>
               </div>
 
-              {/* Specs Grid */}
-              <div className="grid grid-cols-2 gap-3 text-xs">
-                <div className="rounded-xl border border-white/10 bg-slate-950/60 p-3">
-                  <div className="flex items-center gap-2 text-slate-400 mb-1">
-                    <BedDouble className="h-4 w-4 text-sky-400" />
-                    <span>{copy.bedrooms || (isAr ? "غرف النوم" : "Bedrooms")}</span>
+              {/* Specifications & Direct Unit CTA (5 cols) */}
+              <div className="lg:col-span-5 flex flex-col justify-between space-y-6">
+                <div>
+                  <div className="flex flex-wrap items-center gap-2 mb-2">
+                    <span className="rounded-full bg-sky-500/10 border border-sky-400/20 px-3 py-1 text-xs font-semibold text-sky-400 uppercase">
+                      {activeConf.property_type || activeConf.type || "Apartment"}
+                    </span>
+                    {(activeConf.availability || activeConf.availability_status) && (
+                      <span className="rounded-full bg-emerald-500/10 border border-emerald-400/20 px-2.5 py-0.5 text-[11px] font-semibold text-emerald-400">
+                        {activeConf.availability_status || activeConf.availability}
+                      </span>
+                    )}
+                    {activeConf.is_featured && (
+                      <span className="rounded-full bg-amber-500/15 border border-amber-400/30 px-2 py-0.5 text-[10px] font-bold text-amber-300 uppercase">
+                        ★ Featured
+                      </span>
+                    )}
                   </div>
-                  <span className="font-bold text-white text-sm">{activeConf.bedrooms}</span>
+
+                  <h3 className="font-[family-name:var(--font-outfit)] rtl:font-[family-name:var(--font-cairo)] text-2xl font-bold text-white mt-2">
+                    {isAr
+                      ? activeConf.name_ar || activeConf.titleAr || activeConf.name || activeConf.title
+                      : activeConf.name || activeConf.title}
+                  </h3>
+                  <p className="mt-2 text-xs sm:text-sm text-slate-300 leading-relaxed">
+                    {isAr
+                      ? activeConf.description_ar || activeConf.descriptionAr || activeConf.description
+                      : activeConf.description}
+                  </p>
                 </div>
 
-                <div className="rounded-xl border border-white/10 bg-slate-950/60 p-3">
-                  <div className="flex items-center gap-2 text-slate-400 mb-1">
-                    <Bath className="h-4 w-4 text-sky-400" />
-                    <span>{copy.bathrooms || (isAr ? "دورات المياه" : "Bathrooms")}</span>
-                  </div>
-                  <span className="font-bold text-white text-sm">{activeConf.bathrooms}</span>
-                </div>
-
-                <div className="rounded-xl border border-white/10 bg-slate-950/60 p-3">
-                  <div className="flex items-center gap-2 text-slate-400 mb-1">
-                    <Square className="h-4 w-4 text-emerald-400" />
-                    <span>{copy.builtUpArea || (isAr ? "مساحة البناء" : "Built-Up Area")}</span>
-                  </div>
-                  <span className="font-bold text-white text-sm">{activeConf.bua}</span>
-                </div>
-
-                {activeConf.plot && (
+                {/* Specs Grid */}
+                <div className="grid grid-cols-2 gap-3 text-xs">
+                  {/* Bedrooms (if studio or 0 beds, display Studio) */}
                   <div className="rounded-xl border border-white/10 bg-slate-950/60 p-3">
                     <div className="flex items-center gap-2 text-slate-400 mb-1">
-                      <Ruler className="h-4 w-4 text-amber-400" />
-                      <span>{copy.plotArea || (isAr ? "مساحة الأرض" : "Plot Area")}</span>
+                      <BedDouble className="h-4 w-4 text-sky-400" />
+                      <span>{copy.bedrooms || (isAr ? "غرف النوم" : "Bedrooms")}</span>
                     </div>
-                    <span className="font-bold text-white text-sm">{activeConf.plot}</span>
+                    <span className="font-bold text-white text-sm">
+                      {Number(activeConf.bedrooms) === 0 || (activeConf.property_type || activeConf.type) === "Studio"
+                        ? (isAr ? "استوديو" : "Studio")
+                        : activeConf.bedrooms}
+                    </span>
                   </div>
-                )}
-              </div>
 
-              {/* Price & Unit Action */}
-              <div className="pt-2">
-                <div className="flex items-center justify-between mb-4">
-                  <span className="text-xs font-semibold text-slate-400">
-                    {copy.startingPrice || (isAr ? "السعر" : "Price Range")}
-                  </span>
-                  <span className="font-[family-name:var(--font-outfit)] text-xl font-black text-amber-400">
-                    {activeConf.price || price}
-                  </span>
+                  <div className="rounded-xl border border-white/10 bg-slate-950/60 p-3">
+                    <div className="flex items-center gap-2 text-slate-400 mb-1">
+                      <Bath className="h-4 w-4 text-sky-400" />
+                      <span>{copy.bathrooms || (isAr ? "دورات المياه" : "Bathrooms")}</span>
+                    </div>
+                    <span className="font-bold text-white text-sm">{activeConf.bathrooms || 1}</span>
+                  </div>
+
+                  <div className="rounded-xl border border-white/10 bg-slate-950/60 p-3">
+                    <div className="flex items-center gap-2 text-slate-400 mb-1">
+                      <Square className="h-4 w-4 text-emerald-400" />
+                      <span>{copy.builtUpArea || (isAr ? "مساحة البناء" : "Built-Up Area")}</span>
+                    </div>
+                    <span className="font-bold text-white text-sm">
+                      {activeConf.bua_sqm || activeConf.bua} {isAr ? "م²" : "sqm"}
+                    </span>
+                  </div>
+
+                  {(activeConf.plot_sqm || activeConf.plot) ? (
+                    <div className="rounded-xl border border-white/10 bg-slate-950/60 p-3">
+                      <div className="flex items-center gap-2 text-slate-400 mb-1">
+                        <Ruler className="h-4 w-4 text-amber-400" />
+                        <span>{copy.plotArea || (isAr ? "مساحة الأرض" : "Plot Area")}</span>
+                      </div>
+                      <span className="font-bold text-white text-sm">
+                        {activeConf.plot_sqm || activeConf.plot} {isAr ? "م²" : "sqm"}
+                      </span>
+                    </div>
+                  ) : (activeConf.balconies && Number(activeConf.balconies) > 0) ? (
+                    <div className="rounded-xl border border-white/10 bg-slate-950/60 p-3">
+                      <div className="flex items-center gap-2 text-slate-400 mb-1">
+                        <Sparkles className="h-4 w-4 text-amber-400" />
+                        <span>{copy.balconies || (isAr ? "شرفات" : "Balconies")}</span>
+                      </div>
+                      <span className="font-bold text-white text-sm">{activeConf.balconies}</span>
+                    </div>
+                  ) : null}
+
+                  {(activeConf.furnishing_status || activeConf.furnishing) && (
+                    <div className="rounded-xl border border-white/10 bg-slate-950/60 p-3">
+                      <div className="flex items-center gap-2 text-slate-400 mb-1">
+                        <Building2 className="h-4 w-4 text-cyan-400" />
+                        <span>{copy.furnishing || (isAr ? "حالة التأثيث" : "Furnishing")}</span>
+                      </div>
+                      <span className="font-bold text-white text-xs truncate block">
+                        {activeConf.furnishing_status || activeConf.furnishing}
+                      </span>
+                    </div>
+                  )}
+
+                  {(activeConf.parking_info || activeConf.parking) && (
+                    <div className="rounded-xl border border-white/10 bg-slate-950/60 p-3">
+                      <div className="flex items-center gap-2 text-slate-400 mb-1">
+                        <Car className="h-4 w-4 text-sky-400" />
+                        <span>{copy.parking || (isAr ? "مواقف السيارات" : "Parking")}</span>
+                      </div>
+                      <span className="font-bold text-white text-xs truncate block">
+                        {activeConf.parking_info || activeConf.parking}
+                      </span>
+                    </div>
+                  )}
                 </div>
 
-                <button
-                  type="button"
-                  onClick={() =>
-                    scrollToEnquiry(
-                      isAr ? activeConf.titleAr || activeConf.title : activeConf.title
-                    )
-                  }
-                  className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-sky-400 to-cyan-400 px-6 py-3.5 text-xs sm:text-sm font-bold text-slate-950 shadow-[0_0_20px_rgba(56,189,248,0.3)] transition hover:brightness-110 active:scale-[0.98]"
-                >
-                  <Send className="h-4 w-4" />
-                  <span>
-                    {copy.enquireUnit || (isAr ? "استفسر عن هذه الوحدة" : "Enquire About This Unit")}
-                  </span>
-                </button>
+                {/* Price & Action Buttons */}
+                <div className="pt-2 border-t border-white/10">
+                  <div className="flex items-center justify-between mb-4">
+                    <span className="text-xs font-semibold text-slate-400">
+                      {copy.startingPrice || (isAr ? "السعر" : "Price Range")}
+                    </span>
+                    <span className="font-[family-name:var(--font-outfit)] text-xl font-black text-amber-400">
+                      {activeConf.price || price}
+                    </span>
+                  </div>
+
+                  <div className="flex flex-col sm:flex-row gap-3">
+                    <a
+                      href={getConfWhatsAppUrl(activeConf)}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex-1 inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-500 px-5 py-3.5 text-xs sm:text-sm font-bold text-slate-950 shadow-[0_0_20px_rgba(16,185,129,0.3)] transition hover:bg-emerald-400 active:scale-[0.98]"
+                    >
+                      <WhatsAppIcon className="h-4 w-4 fill-slate-950" />
+                      <span>{copy.enquireWhatsApp || (isAr ? "استفسر عبر واتساب" : "Enquire on WhatsApp")}</span>
+                    </a>
+
+                    <button
+                      type="button"
+                      onClick={() =>
+                        scrollToEnquiry(
+                          isAr
+                            ? activeConf.name_ar || activeConf.titleAr || activeConf.name || activeConf.title
+                            : activeConf.name || activeConf.title
+                        )
+                      }
+                      className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/15 bg-slate-950 px-5 py-3.5 text-xs sm:text-sm font-semibold text-white hover:bg-white/10 transition"
+                    >
+                      <Send className="h-4 w-4" />
+                      <span>{copy.enquireUnit || (isAr ? "طلب حجز واستشارة" : "Register Interest")}</span>
+                    </button>
+                  </div>
+                </div>
               </div>
             </div>
-          </div>
+          )}
         </div>
       </section>
 
       {/* =========================================================================
           SECTION 5: AMENITIES & FACILITIES
           ========================================================================= */}
-      <section className="relative border-t border-white/10 py-20 bg-slate-950/30">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="text-center max-w-2xl mx-auto mb-14">
-            <p className="text-xs font-semibold uppercase tracking-[0.25em] text-sky-400">
-              {copy.amenities || (isAr ? "المرافق والخدمات الحصرية" : "Amenities & Facilities")}
-            </p>
-            <h2 className="mt-2 font-[family-name:var(--font-outfit)] rtl:font-[family-name:var(--font-cairo)] text-2xl sm:text-3xl font-bold text-white">
-              {isAr ? "مرافق عالمية مصممة لأرقى أساليب الحياة" : "Curated World-Class Lifestyle Privileges"}
-            </h2>
-            <p className="mt-3 text-xs sm:text-sm text-slate-400">
-              {copy.amenitiesSubtitle ||
-                (isAr
-                  ? "مرافق استثنائية صُممت لأسلوب حياة راقٍ يجمع بين الراحة والرفاهية والهدوء."
-                  : "Curated lifestyle amenities designed for comfort, leisure and wellness.")}
-            </p>
-          </div>
+      {project.amenities_enabled !== false && amenitiesList.length > 0 && (
+        <section id="project-amenities" className="relative border-t border-white/10 py-20 bg-slate-950/30">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+            <div className="text-center max-w-2xl mx-auto mb-14">
+              <p className="text-xs font-semibold uppercase tracking-[0.25em] text-sky-400">
+                {isAr
+                  ? project.amenities_label_ar || project.amenities_label || copy.amenities || "المرافق والخدمات الحصرية"
+                  : project.amenities_label || copy.amenities || "Amenities & Facilities"}
+              </p>
+              <h2 className="mt-2 font-[family-name:var(--font-outfit)] rtl:font-[family-name:var(--font-cairo)] text-2xl sm:text-3xl font-bold text-white">
+                {isAr
+                  ? project.amenities_heading_ar || project.amenities_heading || "مرافق عالمية مصممة لأرقى أساليب الحياة"
+                  : project.amenities_heading || "Curated World-Class Lifestyle Privileges"}
+              </h2>
+              <p className="mt-3 text-xs sm:text-sm text-slate-400">
+                {isAr
+                  ? project.amenities_subtitle_ar ||
+                    project.amenities_subtitle ||
+                    copy.amenitiesSubtitle ||
+                    "مرافق استثنائية صُممت لأسلوب حياة راقٍ يجمع بين الراحة والرفاهية والهدوء."
+                  : project.amenities_subtitle ||
+                    copy.amenitiesSubtitle ||
+                    "Curated lifestyle amenities designed for comfort, leisure and wellness."}
+              </p>
+            </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {amenitiesList.map((item, idx) => (
-              <div
-                key={idx}
-                className="group rounded-2xl border border-white/10 bg-slate-900/60 p-6 backdrop-blur-md transition-all duration-300 hover:-translate-y-1 hover:border-sky-400/40 hover:bg-slate-900/90 hover:shadow-xl"
-              >
-                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-sky-500/10 text-sky-400 border border-sky-400/20 group-hover:bg-sky-500/20 group-hover:scale-110 transition-transform">
-                  {item.icon === "Waves" ? (
-                    <Waves className="h-6 w-6" />
-                  ) : item.icon === "Dumbbell" ? (
-                    <Dumbbell className="h-6 w-6" />
-                  ) : item.icon === "Trees" ? (
-                    <Trees className="h-6 w-6" />
-                  ) : item.icon === "Car" ? (
-                    <Car className="h-6 w-6" />
-                  ) : item.icon === "Building2" ? (
-                    <Building2 className="h-6 w-6" />
-                  ) : item.icon === "Sparkles" ? (
-                    <Sparkles className="h-6 w-6" />
-                  ) : item.icon === "Compass" ? (
-                    <Compass className="h-6 w-6" />
-                  ) : (
-                    <ShieldCheck className="h-6 w-6" />
-                  )}
-                </div>
-                <h3 className="mt-4 font-[family-name:var(--font-outfit)] rtl:font-[family-name:var(--font-cairo)] text-base font-bold text-white">
-                  {isAr ? item.nameAr || item.name : item.name}
-                </h3>
-                <p className="mt-2 text-xs text-slate-400 leading-relaxed">
-                  {isAr ? item.descriptionAr || item.description : item.description}
-                </p>
-              </div>
-            ))}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              {amenitiesList.map((item, idx) => {
+                const itemName = isAr
+                  ? item.name_ar || item.nameAr || item.name
+                  : item.name;
+                const itemDesc = isAr
+                  ? item.description_ar || item.descriptionAr || item.description
+                  : item.description;
+
+                return (
+                  <div
+                    key={item.id || idx}
+                    className="group rounded-2xl border border-white/10 bg-slate-900/60 p-6 backdrop-blur-md transition-all duration-300 hover:-translate-y-1 hover:border-sky-400/40 hover:bg-slate-900/90 hover:shadow-xl flex flex-col justify-between"
+                  >
+                    <div>
+                      <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-sky-500/10 text-sky-400 border border-sky-400/20 group-hover:bg-sky-500/20 group-hover:scale-110 transition-transform">
+                        {renderAmenityIcon(item.icon, "h-6 w-6")}
+                      </div>
+                      <h3 className="mt-4 font-[family-name:var(--font-outfit)] rtl:font-[family-name:var(--font-cairo)] text-base font-bold text-white">
+                        {itemName}
+                      </h3>
+                      {itemDesc && (
+                        <p className="mt-2 text-xs text-slate-400 leading-relaxed">
+                          {itemDesc}
+                        </p>
+                      )}
+                    </div>
+                    {item.category && (
+                      <div className="mt-4 pt-3 border-t border-white/5">
+                        <span className="text-[10px] font-medium tracking-wider uppercase text-sky-400/70">
+                          {item.category}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
 
       {/* =========================================================================
           SECTION 6: PROJECT GALLERY & LIGHTBOX
@@ -1254,59 +1565,117 @@ Client Note: ${message}`,
           ========================================================================= */}
       <section className="relative border-t border-white/10 py-20 bg-slate-950/60">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="grid gap-10 lg:grid-cols-12 items-center">
+          <div className="grid gap-10 lg:grid-cols-12 items-start">
             {/* Left Location Landmarks Grid (6 cols) */}
             <div className="lg:col-span-6 space-y-6">
               <div className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.25em] text-sky-400">
                 <MapPin className="h-3.5 w-3.5" />
                 <span>
-                  {copy.locationConnectivity || (isAr ? "الموقع وسهولة الوصول" : "Location & Connectivity")}
+                  {copy.nearbyAttractions || (isAr ? "الموقع والمعالم القريبة" : "Location & Nearby Attractions")}
                 </span>
               </div>
               <h2 className="font-[family-name:var(--font-outfit)] rtl:font-[family-name:var(--font-cairo)] text-2xl sm:text-3xl font-bold text-white">
                 {isAr
-                  ? `موقع استراتيجي متميز في ${location}`
-                  : `Strategic Position & Unmatched Connectivity in ${location}`}
+                  ? `موقع استراتيجي متميز في ${project.formatted_address || location}`
+                  : `Strategic Position & Prime Connectivity in ${project.formatted_address || location}`}
               </h2>
               <p className="text-sm text-slate-300 leading-relaxed">
-                {isAr
-                  ? "يتمتع المشروع بقربه الاستراتيجي من شبكة الطرق السريعة الرئيسية في سلطنة عمان، مما يمنح السكان والمستثمرين وصولاً سلساً وفورياً إلى مراكز الأعمال والمطارات والمرافق الترفيهية."
-                  : "Positioned at the nexus of major arterial expressways, the development ensures effortless commuting to central business districts, diplomatic quarters, international transport hubs, and coastline promenades."}
+                {copy.nearbyAttractionsSubtitle ||
+                  (isAr
+                    ? "استكشف أبرز المرافق الحيوية ووجهات الترفيه وشبكات النقل المحيطة بالمشروع."
+                    : "Explore essential amenities, transit connections and cultural landmarks surrounding this development.")}
               </p>
 
-              {/* Landmarks Time Cards */}
-              <div className="space-y-3 pt-2">
-                {nearbyLandmarks.map((lm, idx) => (
-                  <div
-                    key={idx}
-                    className="flex items-center justify-between rounded-xl border border-white/10 bg-slate-900/70 p-3.5 backdrop-blur-md transition hover:border-sky-400/30"
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-sky-500/10 text-sky-400">
-                        <Compass className="h-4 w-4" />
-                      </div>
-                      <span className="text-xs sm:text-sm font-semibold text-white">
-                        {isAr ? lm.nameAr || lm.name : lm.name}
-                      </span>
-                    </div>
-                    <span className="flex items-center gap-1.5 text-xs font-bold text-amber-400">
-                      <Clock className="h-3.5 w-3.5" />
-                      <span>{isAr ? lm.timeAr || lm.time : lm.time}</span>
+              {/* Precise Coordinates & Address Badge if available */}
+              {(project.formatted_address || (project.latitude && project.longitude)) && (
+                <div className="flex flex-wrap items-center gap-2 text-xs">
+                  {project.formatted_address && (
+                    <span className="inline-flex items-center gap-1.5 rounded-xl border border-white/10 bg-slate-900/80 px-3 py-1.5 text-slate-300">
+                      <MapPin className="h-3.5 w-3.5 text-sky-400" />
+                      <span>{project.formatted_address}</span>
                     </span>
-                  </div>
-                ))}
+                  )}
+                  {project.latitude && project.longitude && (
+                    <span className="inline-flex items-center gap-1 rounded-xl border border-white/10 bg-slate-900/80 px-3 py-1.5 font-mono text-[11px] text-sky-400">
+                      <span>{project.latitude.toFixed(4)}, {project.longitude.toFixed(4)}</span>
+                    </span>
+                  )}
+                </div>
+              )}
+
+              {/* Surrounding Attractions & Travel Time Cards */}
+              <div className="space-y-3 pt-2">
+                {nearbyLandmarks.map((lm, idx) => {
+                  const placeName = isAr ? lm.name_ar || lm.nameAr || lm.name : lm.name;
+                  const timeDisplay = isAr
+                    ? lm.timeAr || lm.travel_time_text || lm.time
+                    : lm.travel_time_text || lm.time;
+                  return (
+                    <div
+                      key={lm.id || idx}
+                      className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-2xl border border-white/10 bg-slate-900/70 p-3.5 backdrop-blur-md transition hover:border-sky-400/30"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-sky-500/10 text-sky-400">
+                          <Compass className="h-4 w-4" />
+                        </div>
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs sm:text-sm font-semibold text-white">
+                              {placeName}
+                            </span>
+                            {lm.category && (
+                              <span className="rounded bg-sky-500/10 px-1.5 py-0.5 text-[9px] font-bold text-sky-300 uppercase">
+                                {lm.category}
+                              </span>
+                            )}
+                          </div>
+                          {lm.distance_km && (
+                            <span className="font-mono text-[11px] text-amber-400">
+                              {lm.distance_km} {copy.distanceKm || (isAr ? "كم" : "km")}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-3 self-end sm:self-center">
+                        {timeDisplay && (
+                          <span className="flex items-center gap-1.5 text-xs font-bold text-slate-300">
+                            <Clock className="h-3.5 w-3.5 text-amber-400" />
+                            <span>{timeDisplay}</span>
+                          </span>
+                        )}
+
+                        {lm.google_maps_url && (
+                          <a
+                            href={lm.google_maps_url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1 rounded-lg border border-white/10 bg-white/5 px-2.5 py-1 text-[11px] font-semibold text-sky-400 hover:bg-sky-500/20 transition"
+                          >
+                            <span>{copy.navigateThere || (isAr ? "الاتجاهات" : "Directions")}</span>
+                            <ExternalLink className="h-3 w-3" />
+                          </a>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
 
               <div className="pt-2">
                 <a
-                  href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
-                    `${title} ${location}`
-                  )}`}
+                  href={
+                    project.google_maps_url ||
+                    (project.latitude && project.longitude
+                      ? `https://www.google.com/maps/search/?api=1&query=${project.latitude},${project.longitude}`
+                      : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${title} ${location}`)}`)
+                  }
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-2 text-xs font-semibold text-sky-400 hover:text-sky-300 transition underline underline-offset-4"
                 >
-                  <span>{isAr ? "فتح الموقع على خرائط جوجل" : "Open Location in Google Maps"}</span>
+                  <span>{copy.openInGoogleMaps || (isAr ? "فتح الموقع على خرائط جوجل" : "Open Location in Google Maps")}</span>
                   <ExternalLink className="h-3.5 w-3.5" />
                 </a>
               </div>
@@ -1318,25 +1687,30 @@ Client Note: ${message}`,
                 {/* Styled iframe / interactive map preview */}
                 <iframe
                   title={`${title} Map View`}
-                  src={`https://maps.google.com/maps?q=${encodeURIComponent(
-                    location
-                  )}&t=&z=13&ie=UTF8&iwloc=&output=embed`}
+                  src={
+                    project.latitude && project.longitude
+                      ? `https://maps.google.com/maps?q=${project.latitude},${project.longitude}&z=14&output=embed`
+                      : `https://maps.google.com/maps?q=${encodeURIComponent(location)}&t=&z=13&ie=UTF8&iwloc=&output=embed`
+                  }
                   className="h-full w-full border-0 filter invert contrast-[0.9] opacity-80"
                   loading="lazy"
                 />
                 <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent to-transparent opacity-60" />
                 <div className="absolute bottom-5 left-5 right-5 flex items-center justify-between rounded-2xl bg-slate-950/90 p-4 backdrop-blur-md border border-white/10">
-                  <div>
-                    <p className="text-xs font-bold text-white">{title}</p>
-                    <p className="text-[11px] text-slate-400">{location}</p>
+                  <div className="min-w-0 pr-2">
+                    <p className="truncate text-xs font-bold text-white">{title}</p>
+                    <p className="truncate text-[11px] text-slate-400">{project.formatted_address || location}</p>
                   </div>
                   <a
-                    href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
-                      `${title} ${location}`
-                    )}`}
+                    href={
+                      project.google_maps_url ||
+                      (project.latitude && project.longitude
+                        ? `https://www.google.com/maps/search/?api=1&query=${project.latitude},${project.longitude}`
+                        : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${title} ${location}`)}`)
+                    }
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="rounded-xl bg-sky-500 px-4 py-2 text-xs font-bold text-slate-950 hover:bg-sky-400 transition"
+                    className="shrink-0 rounded-xl bg-sky-500 px-4 py-2 text-xs font-bold text-slate-950 hover:bg-sky-400 transition"
                   >
                     {isAr ? "عرض الخريطة" : "Explore Map"}
                   </a>
@@ -1350,146 +1724,181 @@ Client Note: ${message}`,
       {/* =========================================================================
           SECTION 10: INVESTMENT INFORMATION & PAYMENT MILESTONES
           ========================================================================= */}
-      <section className="relative border-t border-white/10 py-20 bg-slate-900/30">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="text-center max-w-2xl mx-auto mb-14">
-            <p className="text-xs font-semibold uppercase tracking-[0.25em] text-amber-400">
-              {copy.investment || (isAr ? "الاستثمار وخطة السداد" : "Investment & Payment Plan")}
-            </p>
-            <h2 className="mt-2 font-[family-name:var(--font-outfit)] rtl:font-[family-name:var(--font-cairo)] text-2xl sm:text-3xl font-bold text-white">
-              {isAr ? "دفعات ميسرة وفرص استثمارية واعدة" : "Transparent Milestones & Investor Security"}
-            </h2>
-            <p className="mt-3 text-xs sm:text-sm text-slate-400">
-              {copy.investmentSubtitle ||
-                (isAr
-                  ? "دفعات ميسرة وفرص تملك استثمارية ذات عوائد مجزية ومستدامة."
-                  : "Flexible payment milestones and high-yield ownership opportunities.")}
-            </p>
+      {project.investment_enabled !== false && (milestonesList.length > 0 || project.mortgage_enabled === true) && (
+        <section id="project-investment" className="relative border-t border-white/10 py-20 bg-slate-900/30">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+            <div className="text-center max-w-2xl mx-auto mb-14">
+              <p className="text-xs font-semibold uppercase tracking-[0.25em] text-amber-400">
+                {isAr
+                  ? project.investment_label_ar ||
+                    project.investment_label ||
+                    copy.investment ||
+                    "الاستثمار وخطة السداد"
+                  : project.investment_label || copy.investment || "Investment & Payment Plan"}
+              </p>
+              <h2 className="mt-2 font-[family-name:var(--font-outfit)] rtl:font-[family-name:var(--font-cairo)] text-2xl sm:text-3xl font-bold text-white">
+                {isAr
+                  ? project.investment_heading_ar ||
+                    project.investment_heading ||
+                    "دفعات ميسرة وفرص استثمارية واعدة"
+                  : project.investment_heading || "Transparent Milestones & Investor Security"}
+              </h2>
+              <p className="mt-3 text-xs sm:text-sm text-slate-400">
+                {isAr
+                  ? project.investment_subtitle_ar ||
+                    project.investment_subtitle ||
+                    copy.investmentSubtitle ||
+                    "دفعات ميسرة وفرص تملك استثمارية ذات عوائد مجزية ومستدامة."
+                  : project.investment_subtitle ||
+                    copy.investmentSubtitle ||
+                    "Flexible payment milestones and high-yield ownership opportunities."}
+              </p>
+            </div>
+
+            {/* Dynamic Payment Milestone Cards & Mortgage */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-14">
+              {milestonesList.map((m, idx) => {
+                const stepNum = m.step_number || String(idx + 1).padStart(2, "0");
+                const mTitle = isAr
+                  ? m.title_ar || m.titleAr || m.title
+                  : m.title;
+                const mDesc = isAr
+                  ? m.description_ar || m.descriptionAr || m.description
+                  : m.description;
+
+                return (
+                  <div
+                    key={m.id || idx}
+                    className="rounded-2xl border border-white/10 bg-slate-900/70 p-6 backdrop-blur-md relative overflow-hidden group hover:border-sky-400/30 transition-all duration-300 flex flex-col justify-between"
+                  >
+                    <div>
+                      <span className="font-[family-name:var(--font-outfit)] text-4xl font-extrabold text-sky-400/20 absolute top-4 right-4 rtl:left-4 rtl:right-auto">
+                        {stepNum}
+                      </span>
+                      <div className="flex items-center gap-2 mb-2">
+                        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-sky-500/10 text-sky-400 border border-sky-400/20">
+                          {renderMilestoneIcon(m.icon, "h-4 w-4")}
+                        </div>
+                        <p className="text-xs font-bold uppercase tracking-wider text-sky-400">
+                          {isAr ? `المرحلة ${stepNum}: ${mTitle}` : `Step ${stepNum}: ${mTitle}`}
+                        </p>
+                      </div>
+                      <p className="font-[family-name:var(--font-outfit)] text-3xl font-black text-white mt-2">
+                        {m.percentage}
+                      </p>
+                      {mDesc && (
+                        <p className="mt-2 text-xs text-slate-400 leading-relaxed">
+                          {mDesc}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+
+              {/* Optional Independent Bank Mortgage Card */}
+              {project.mortgage_enabled === true && (
+                <div className="rounded-2xl border border-amber-400/30 bg-gradient-to-br from-amber-500/15 via-amber-500/5 to-transparent p-6 backdrop-blur-md relative overflow-hidden group hover:border-amber-400/50 transition-all duration-300 flex flex-col justify-between">
+                  <div>
+                    <span className="font-[family-name:var(--font-outfit)] text-4xl font-extrabold text-amber-400/20 absolute top-4 right-4 rtl:left-4 rtl:right-auto">
+                      🏦
+                    </span>
+                    <div className="flex items-center gap-2 mb-2">
+                      <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-amber-500/20 text-amber-400 border border-amber-400/30">
+                        <Landmark className="h-4 w-4" />
+                      </div>
+                      <p className="text-xs font-bold uppercase tracking-wider text-amber-400">
+                        {isAr
+                          ? project.mortgage_title_ar || "التمويل البنكي"
+                          : project.mortgage_title || "Bank Mortgages"}
+                      </p>
+                    </div>
+                    <p className="font-[family-name:var(--font-outfit)] text-2xl font-black text-amber-300 mt-2">
+                      {isAr
+                        ? project.mortgage_status_ar || "معتمد بنكياً"
+                        : project.mortgage_status || "Bank Approved"}
+                    </p>
+                    <p className="mt-2 text-xs text-slate-300 leading-relaxed">
+                      {isAr
+                        ? project.mortgage_description_ar ||
+                          "تسهيلات تمويلية ميسرة وخيارات مرنة عبر البنوك العمانية الرائدة."
+                        : project.mortgage_description ||
+                          "Mortgage eligibility and financing facilitation across leading Omani banks."}
+                    </p>
+                  </div>
+                  {project.mortgage_banks && (
+                    <div className="mt-4 pt-3 border-t border-amber-400/20">
+                      <p className="text-[11px] font-semibold text-amber-200/90 leading-tight">
+                        {project.mortgage_banks}
+                      </p>
+                      {project.mortgage_additional_info && (
+                        <p className="mt-1 text-[10px] text-slate-400 leading-relaxed">
+                          {project.mortgage_additional_info}
+                        </p>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* 4 Pillars of Oman Investment */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              <div className="rounded-2xl border border-white/10 bg-slate-950/60 p-5">
+                <ShieldCheck className="h-6 w-6 text-emerald-400 mb-3" />
+                <h3 className="font-[family-name:var(--font-outfit)] text-sm font-bold text-white">
+                  {copy.freehold || (isAr ? "تملك حر بنسبة 100%" : "100% Freehold Ownership")}
+                </h3>
+                <p className="mt-1 text-xs text-slate-400 leading-relaxed">
+                  {copy.freeholdDesc ||
+                    (isAr
+                      ? "متاح للمواطنين والخليجيين والمستثمرين الدوليين."
+                      : "Available for Omani, GCC and international investors.")}
+                </p>
+              </div>
+
+              <div className="rounded-2xl border border-white/10 bg-slate-950/60 p-5">
+                <Sparkles className="h-6 w-6 text-sky-400 mb-3" />
+                <h3 className="font-[family-name:var(--font-outfit)] text-sm font-bold text-white">
+                  {copy.residency || (isAr ? "إقامة مستثمر عقاري" : "Investor Residency")}
+                </h3>
+                <p className="mt-1 text-xs text-slate-400 leading-relaxed">
+                  {copy.residencyDesc ||
+                    (isAr
+                      ? "مؤهل للحصول على تأشيرة الإقامة العقارية في سلطنة عمان للمشترين."
+                      : "Qualifies for Oman investor visa upon purchase.")}
+                </p>
+              </div>
+
+              <div className="rounded-2xl border border-white/10 bg-slate-950/60 p-5">
+                <Building2 className="h-6 w-6 text-amber-400 mb-3" />
+                <h3 className="font-[family-name:var(--font-outfit)] text-sm font-bold text-white">
+                  {copy.escrow || (isAr ? "حساب ضمان مصرفي معتمد" : "Escrow Account Protection")}
+                </h3>
+                <p className="mt-1 text-xs text-slate-400 leading-relaxed">
+                  {copy.escrowDesc ||
+                    (isAr
+                      ? "حماية كاملة لأموال المشترين تحت إشراف وزارة الإسكان والتخطيط العمراني."
+                      : "Regulated development safeguards under Oman Housing Ministry.")}
+                </p>
+              </div>
+
+              <div className="rounded-2xl border border-white/10 bg-slate-950/60 p-5">
+                <Coins className="h-6 w-6 text-cyan-400 mb-3" />
+                <h3 className="font-[family-name:var(--font-outfit)] text-sm font-bold text-white">
+                  {copy.zeroTax || (isAr ? "إعفاء ضريبي 0%" : "0% Personal Income Tax")}
+                </h3>
+                <p className="mt-1 text-xs text-slate-400 leading-relaxed">
+                  {copy.zeroTaxDesc ||
+                    (isAr
+                      ? "لا توجد ضريبة على الدخل الشخصي أو الأرباح الرأسمالية في سلطنة عمان."
+                      : "No personal income or capital gains tax in Oman.")}
+                </p>
+              </div>
+            </div>
           </div>
-
-          {/* Payment Milestone Stepper Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-5 mb-14">
-            {/* Step 1 */}
-            <div className="rounded-2xl border border-white/10 bg-slate-900/70 p-6 backdrop-blur-md relative overflow-hidden">
-              <span className="font-[family-name:var(--font-outfit)] text-4xl font-extrabold text-sky-400/20 absolute top-4 right-4 rtl:left-4 rtl:right-auto">
-                01
-              </span>
-              <p className="text-xs font-bold uppercase tracking-wider text-sky-400">
-                {isAr ? "الدفعة الأولى" : "Step 1: Down Payment"}
-              </p>
-              <p className="font-[family-name:var(--font-outfit)] text-3xl font-black text-white mt-2">
-                10% - 20%
-              </p>
-              <p className="mt-2 text-xs text-slate-400">
-                {isAr ? "عند حجز الوحدة وتأكيد العقد المبدئي" : "Upon reservation and initial booking"}
-              </p>
-            </div>
-
-            {/* Step 2 */}
-            <div className="rounded-2xl border border-white/10 bg-slate-900/70 p-6 backdrop-blur-md relative overflow-hidden">
-              <span className="font-[family-name:var(--font-outfit)] text-4xl font-extrabold text-sky-400/20 absolute top-4 right-4 rtl:left-4 rtl:right-auto">
-                02
-              </span>
-              <p className="text-xs font-bold uppercase tracking-wider text-sky-400">
-                {isAr ? "أثناء البناء" : "Step 2: Construction"}
-              </p>
-              <p className="font-[family-name:var(--font-outfit)] text-3xl font-black text-white mt-2">
-                30% - 40%
-              </p>
-              <p className="mt-2 text-xs text-slate-400">
-                {isAr ? "أقساط موزعة وفق مراحل إنجاز البناء المعتمدة" : "Installments tied to verified construction milestones"}
-              </p>
-            </div>
-
-            {/* Step 3 */}
-            <div className="rounded-2xl border border-white/10 bg-slate-900/70 p-6 backdrop-blur-md relative overflow-hidden">
-              <span className="font-[family-name:var(--font-outfit)] text-4xl font-extrabold text-sky-400/20 absolute top-4 right-4 rtl:left-4 rtl:right-auto">
-                03
-              </span>
-              <p className="text-xs font-bold uppercase tracking-wider text-sky-400">
-                {isAr ? "عند الاستلام" : "Step 3: Handover"}
-              </p>
-              <p className="font-[family-name:var(--font-outfit)] text-3xl font-black text-white mt-2">
-                40% - 50%
-              </p>
-              <p className="mt-2 text-xs text-slate-400">
-                {isAr ? "عند إنجاز المشروع واستلام المفاتيح" : "Upon project completion and key handover"}
-              </p>
-            </div>
-
-            {/* Step 4: Financing Option */}
-            <div className="rounded-2xl border border-amber-400/30 bg-gradient-to-br from-amber-500/15 to-transparent p-6 backdrop-blur-md relative overflow-hidden">
-              <span className="font-[family-name:var(--font-outfit)] text-4xl font-extrabold text-amber-400/20 absolute top-4 right-4 rtl:left-4 rtl:right-auto">
-                04
-              </span>
-              <p className="text-xs font-bold uppercase tracking-wider text-amber-400">
-                {isAr ? "التمويل البنكي" : "Bank Mortgages"}
-              </p>
-              <p className="font-[family-name:var(--font-outfit)] text-2xl font-black text-amber-300 mt-2">
-                {isAr ? "معتمد بنكياً" : "Bank Approved"}
-              </p>
-              <p className="mt-2 text-xs text-slate-300">
-                {isAr ? "تسهيلات تمويلية ميسرة عبر البنوك العمانية" : "Mortgage eligibility across leading Omani banks"}
-              </p>
-            </div>
-          </div>
-
-          {/* 4 Pillars of Oman Investment */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            <div className="rounded-2xl border border-white/10 bg-slate-950/60 p-5">
-              <ShieldCheck className="h-6 w-6 text-emerald-400 mb-3" />
-              <h3 className="font-[family-name:var(--font-outfit)] text-sm font-bold text-white">
-                {copy.freehold || (isAr ? "تملك حر بنسبة 100%" : "100% Freehold Ownership")}
-              </h3>
-              <p className="mt-1 text-xs text-slate-400 leading-relaxed">
-                {copy.freeholdDesc ||
-                  (isAr
-                    ? "متاح للمواطنين والخليجيين والمستثمرين الدوليين."
-                    : "Available for Omani, GCC and international investors.")}
-              </p>
-            </div>
-
-            <div className="rounded-2xl border border-white/10 bg-slate-950/60 p-5">
-              <Sparkles className="h-6 w-6 text-sky-400 mb-3" />
-              <h3 className="font-[family-name:var(--font-outfit)] text-sm font-bold text-white">
-                {copy.residency || (isAr ? "إقامة مستثمر عقاري" : "Investor Residency")}
-              </h3>
-              <p className="mt-1 text-xs text-slate-400 leading-relaxed">
-                {copy.residencyDesc ||
-                  (isAr
-                    ? "مؤهل للحصول على تأشيرة الإقامة العقارية في سلطنة عمان للمشترين."
-                    : "Qualifies for Oman investor visa upon purchase.")}
-              </p>
-            </div>
-
-            <div className="rounded-2xl border border-white/10 bg-slate-950/60 p-5">
-              <Building2 className="h-6 w-6 text-amber-400 mb-3" />
-              <h3 className="font-[family-name:var(--font-outfit)] text-sm font-bold text-white">
-                {copy.escrow || (isAr ? "حساب ضمان مصرفي معتمد" : "Escrow Account Protection")}
-              </h3>
-              <p className="mt-1 text-xs text-slate-400 leading-relaxed">
-                {copy.escrowDesc ||
-                  (isAr
-                    ? "حماية كاملة لأموال المشترين تحت إشراف وزارة الإسكان والتخطيط العمراني."
-                    : "Regulated development safeguards under Oman Housing Ministry.")}
-              </p>
-            </div>
-
-            <div className="rounded-2xl border border-white/10 bg-slate-950/60 p-5">
-              <Coins className="h-6 w-6 text-cyan-400 mb-3" />
-              <h3 className="font-[family-name:var(--font-outfit)] text-sm font-bold text-white">
-                {copy.zeroTax || (isAr ? "إعفاء ضريبي 0%" : "0% Personal Income Tax")}
-              </h3>
-              <p className="mt-1 text-xs text-slate-400 leading-relaxed">
-                {copy.zeroTaxDesc ||
-                  (isAr
-                    ? "لا توجد ضريبة على الدخل الشخصي أو الأرباح الرأسمالية في سلطنة عمان."
-                    : "No personal income or capital gains tax in Oman.")}
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
+        </section>
+      )}
 
       {/* =========================================================================
           SECTION 11: BROCHURE DOWNLOAD
@@ -1840,11 +2249,11 @@ Client Note: ${message}`,
                       </Link>
 
                       <a
-                        href={`https://wa.me/message/BACRFFVZ3LOXH1?text=${encodeURIComponent(
-                          isAr
-                            ? `مرحباً، أود الاستفسار عن مشروع ${rel.name}`
-                            : `Hello, I would like to inquire about ${rel.name}`
-                        )}`}
+                        href={getProjectWhatsAppUrl({
+                          projectName: rel.name,
+                          startingPrice: rel.price,
+                          language: isAr ? "ar" : "en",
+                        })}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="rounded-lg bg-emerald-500/20 border border-emerald-500/30 p-2 text-emerald-300 hover:bg-emerald-500 hover:text-slate-950 transition"

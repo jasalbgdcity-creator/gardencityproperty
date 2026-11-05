@@ -98,7 +98,7 @@ export default function CoreValues() {
           <p className="text-xs font-semibold tracking-[0.28em] text-sky-400 uppercase">
             {isAr ? "قيمنا ورسالتنا" : "Why Choose Us & Our Purpose"}
           </p>
-          <h2 className="mt-3 font-[family-name:var(--font-outfit)] text-3xl font-semibold text-white sm:text-4xl">
+          <h2 className="mt-3 font-serif text-3xl font-semibold tracking-tight text-white sm:text-4xl lg:text-5xl rtl:font-[family-name:var(--font-cairo)] rtl:tracking-normal rtl:font-bold">
             {isAr ? (
               <>
                 ركائز الثقة والريادة في <span className="text-amber-500">سلطنة عمان</span>

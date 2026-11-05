@@ -14,24 +14,43 @@ export default function AdminLoginPage() {
   const [checkingAuth, setCheckingAuth] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  // If already authenticated, redirect directly to /admin
+  // If already authenticated, redirect directly to /admin/
   useEffect(() => {
+    let isMounted = true;
+
     async function checkExistingSession() {
       try {
         const {
           data: { session },
         } = await supabase.auth.getSession();
-        if (session) {
-          router.replace("/admin");
+        if (session && isMounted) {
+          router.replace("/admin/");
           return;
         }
       } catch (err) {
         console.error("Session check error:", err);
       } finally {
-        setCheckingAuth(false);
+        if (isMounted) {
+          setCheckingAuth(false);
+        }
       }
     }
+
     checkExistingSession();
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((event, session) => {
+      if (!isMounted) return;
+      if (session && (event === "SIGNED_IN" || event === "TOKEN_REFRESHED")) {
+        router.replace("/admin/");
+      }
+    });
+
+    return () => {
+      isMounted = false;
+      subscription.unsubscribe();
+    };
   }, [router]);
 
   async function handleLogin(e: FormEvent<HTMLFormElement>) {
@@ -52,7 +71,7 @@ export default function AdminLoginPage() {
       }
 
       if (data.session) {
-        router.replace("/admin");
+        router.replace("/admin/");
       }
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Failed to sign in. Please try again.";

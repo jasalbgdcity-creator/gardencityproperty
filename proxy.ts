@@ -6,6 +6,17 @@ const LOCALES = ["en", "ar"];
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
+  // Redirect localized admin paths (e.g. /en/admin, /ar/admin, /en/admin/login) to canonical /admin/
+  for (const locale of LOCALES) {
+    if (pathname === `/${locale}/admin` || pathname === `/${locale}/admin/`) {
+      return NextResponse.redirect(new URL("/admin/", request.url), 301);
+    }
+    if (pathname.startsWith(`/${locale}/admin/`)) {
+      const canonicalAdminPath = pathname.slice(`/${locale}`.length);
+      return NextResponse.redirect(new URL(canonicalAdminPath, request.url), 301);
+    }
+  }
+
   // Skip static assets, API, admin, next internal files, and metadata files
   if (
     pathname.startsWith("/_next") ||

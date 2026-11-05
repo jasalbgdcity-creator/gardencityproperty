@@ -42,7 +42,7 @@ export default function Hero() {
           initial={{ opacity: 0, y: 22 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.1 }}
-          className="max-w-4xl font-[family-name:var(--font-outfit)] rtl:font-[family-name:var(--font-cairo)] text-4xl leading-tight font-semibold text-white sm:text-5xl lg:text-6xl rtl:leading-snug"
+          className="max-w-4xl font-serif text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-semibold leading-[1.12] tracking-normal sm:tracking-tight text-white drop-shadow-md rtl:font-[family-name:var(--font-cairo)] rtl:leading-snug rtl:tracking-normal rtl:font-bold"
         >
           {copy.title}
         </motion.h1>
@@ -50,7 +50,7 @@ export default function Hero() {
           initial={{ opacity: 0, y: 22 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.2 }}
-          className="mt-6 max-w-2xl text-lg leading-relaxed text-slate-300 rtl:font-[family-name:var(--font-cairo)]"
+          className="mt-6 max-w-2xl font-sans text-base sm:text-lg lg:text-xl leading-relaxed text-slate-200/90 font-normal rtl:font-[family-name:var(--font-cairo)]"
         >
           {copy.subtitle}
         </motion.p>

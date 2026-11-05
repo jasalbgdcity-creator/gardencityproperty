@@ -2,7 +2,8 @@
 
 :root {
   --font-plus-jakarta: "Plus Jakarta Sans", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  --font-outfit: "Outfit", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-serif: "Playfair Display", Georgia, Cambria, "Times New Roman", Times, serif;
+  --font-outfit: var(--font-serif);
   --font-cairo: "Cairo", "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
   --background: #050816;
   --foreground: #e8eef7;
@@ -15,7 +16,8 @@
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-sans: var(--font-plus-jakarta);
-  --font-display: var(--font-outfit);
+  --font-serif: var(--font-serif);
+  --font-display: var(--font-serif);
 }
 
 html {
@@ -31,6 +33,16 @@ body {
 html[dir="rtl"] body {
   font-family: var(--font-cairo), var(--font-plus-jakarta), ui-sans-serif, system-ui,
     sans-serif;
+}
+
+/* Ensure Arabic text strictly retains Cairo and never inherits Latin serif */
+html[dir="rtl"] .font-serif,
+html[dir="rtl"] [class*="font-serif"],
+html[dir="rtl"] .font-display,
+html[dir="rtl"] [class*="font-display"],
+html[dir="rtl"] [class*="font-\[family-name\:var\(--font-outfit\)\]"],
+html[dir="rtl"] [class*="font-\[family-name\:var\(--font-serif\)\]"] {
+  font-family: var(--font-cairo), var(--font-plus-jakarta), ui-sans-serif, sans-serif !important;
 }
 
 ::selection {

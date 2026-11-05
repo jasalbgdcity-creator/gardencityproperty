@@ -36,7 +36,7 @@ export default function Navbar() {
         </Link>
 
         {/* Desktop Navigation Links */}
-        <div className="hidden md:flex items-center gap-3 lg:gap-6 xl:gap-8 shrink-0">
+        <div className="hidden md:flex items-center gap-4 lg:gap-6 xl:gap-8 shrink-0">
           {links.map((link) => (
             <Link
               key={link.href}
@@ -83,13 +83,15 @@ export default function Navbar() {
                 {link.label}
               </Link>
             ))}
-            <Link
-              href={`/${language}/#contact`}
-              onClick={() => setIsOpen(false)}
-              className="mt-3 rounded-full bg-gradient-to-r from-sky-400 to-cyan-300 px-4 py-2.5 text-center text-sm font-semibold text-slate-950 shadow-[0_0_20px_rgba(56,189,248,0.35)]"
-            >
-              {nav.getStarted}
-            </Link>
+            <div className="mt-3">
+              <Link
+                href={`/${language}/#contact`}
+                onClick={() => setIsOpen(false)}
+                className="block w-full rounded-full bg-gradient-to-r from-sky-400 to-cyan-300 px-4 py-2.5 text-center text-xs font-semibold text-slate-950 shadow-[0_0_20px_rgba(56,189,248,0.35)] transition hover:brightness-105"
+              >
+                {nav.getStarted}
+              </Link>
+            </div>
           </div>
         </div>
       )}

@@ -110,6 +110,75 @@ export default async function ProjectDetailPage({ params }: Props) {
     .neq("id", slug)
     .limit(3);
 
+  // Attempt to fetch configurations from relational table, fallback to JSON column
+  let mergedConfigurations = project.property_configurations || [];
+  try {
+    const { data: configs } = await supabase
+      .from("project_configurations")
+      .select("*")
+      .eq("project_id", slug)
+      .order("display_order", { ascending: true });
+    if (configs && configs.length > 0) {
+      mergedConfigurations = configs;
+    }
+  } catch {
+    // Relational table might not exist yet
+  }
+
+  // Attempt to fetch nearby places from relational table, fallback to JSON column
+  let mergedNearbyPlaces = project.nearby_locations || [];
+  try {
+    const { data: places } = await supabase
+      .from("project_nearby_places")
+      .select("*")
+      .eq("project_id", slug)
+      .order("display_order", { ascending: true });
+    if (places && places.length > 0) {
+      mergedNearbyPlaces = places;
+    }
+  } catch {
+    // Relational table might not exist yet
+  }
+
+  // Attempt to fetch payment milestones from relational table, fallback to JSON column
+  let mergedMilestones = project.payment_milestones || [];
+  try {
+    const { data: milestones } = await supabase
+      .from("project_payment_milestones")
+      .select("*")
+      .eq("project_id", slug)
+      .eq("is_active", true)
+      .order("display_order", { ascending: true });
+    if (milestones && milestones.length > 0) {
+      mergedMilestones = milestones;
+    }
+  } catch {
+    // Relational table might not exist yet
+  }
+
+  // Attempt to fetch amenities from relational table, fallback to JSON column
+  let mergedAmenities = project.amenities || [];
+  try {
+    const { data: amenities } = await supabase
+      .from("project_amenities")
+      .select("*")
+      .eq("project_id", slug)
+      .order("display_order", { ascending: true });
+    if (amenities && amenities.length > 0) {
+      mergedAmenities = amenities;
+    }
+  } catch {
+    // Relational table might not exist yet
+  }
+
+  const enrichedProject = {
+    ...project,
+    payment_milestones: mergedMilestones,
+    amenities: mergedAmenities,
+    property_configurations: mergedConfigurations,
+    nearby_locations: mergedNearbyPlaces,
+  };
+
   const location = project.location || (isAr ? "مسقط، سلطنة عمان" : "Muscat, Oman");
   const gallery: string[] = Array.from(
     new Set([project.image, ...(project.gallery_urls || project.galleryUrls || [])].filter(Boolean))
@@ -153,7 +222,7 @@ export default async function ProjectDetailPage({ params }: Props) {
 
       <main className="flex-1 w-full">
         <ProjectPresentation
-          project={project}
+          project={enrichedProject}
           relatedProjects={relatedProjects || []}
           locale={locale}
         />

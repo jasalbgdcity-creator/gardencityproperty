@@ -3,6 +3,7 @@
 import { motion } from "framer-motion";
 import { Mail, Phone } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
+import { getGeneralWhatsAppUrl } from "@/lib/whatsapp";
 
 function WhatsAppIcon({ className = "h-5 w-5" }: { className?: string }) {
   return (
@@ -53,7 +54,7 @@ export default function Consultants() {
           <p className="text-xs font-semibold tracking-[0.28em] text-sky-400 uppercase">
             {language === "ar" ? "المستشارون العقاريون" : "Advisory Team"}
           </p>
-          <h2 className="mt-3 font-[family-name:var(--font-outfit)] text-3xl font-semibold text-white sm:text-4xl">
+          <h2 className="mt-3 font-serif text-3xl font-semibold tracking-tight text-white sm:text-4xl lg:text-5xl rtl:font-[family-name:var(--font-cairo)] rtl:tracking-normal rtl:font-bold">
             {language === "ar" ? (
               <>
                 مستشارو <span className="text-amber-500">العقارات</span>
@@ -128,7 +129,7 @@ export default function Consultants() {
                     </a>
 
                     <a
-                      href="https://wa.me/message/BACRFFVZ3LOXH1"
+                      href={getGeneralWhatsAppUrl(language === "ar" ? "ar" : "en")}
                       target="_blank"
                       rel="noopener noreferrer"
                       aria-label={`WhatsApp ${consultant.name}`}

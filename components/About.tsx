@@ -136,7 +136,7 @@ export default function About() {
             {copy.eyebrow}
           </p>
 
-          <h2 className="mt-3 font-[family-name:var(--font-outfit)] text-3xl font-semibold text-white sm:text-4xl">
+          <h2 className="mt-3 font-serif text-3xl font-semibold tracking-tight text-white sm:text-4xl lg:text-5xl rtl:font-[family-name:var(--font-cairo)] rtl:tracking-normal rtl:font-bold">
             {copy.title}
           </h2>
           <p className="mt-6 font-sans text-base leading-8 text-slate-300">{copy.body}</p>

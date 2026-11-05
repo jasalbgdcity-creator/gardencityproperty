@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
 import { supabase } from "@/lib/supabase";
+import { getProjectWhatsAppUrl } from "@/lib/whatsapp";
 
 interface Project {
   id: string;
@@ -229,7 +230,7 @@ export default function ProjectsShowcase() {
           <p className="text-xs font-semibold tracking-[0.28em] text-sky-400 uppercase">
             {copy.eyebrow}
           </p>
-          <h2 className="mt-3 font-[family-name:var(--font-outfit)] text-3xl font-semibold text-white sm:text-4xl">
+          <h2 className="mt-3 font-serif text-3xl font-semibold tracking-tight text-white sm:text-4xl lg:text-5xl rtl:font-[family-name:var(--font-cairo)] rtl:tracking-normal rtl:font-bold">
             {language === "ar" ? (
               <>
                 عرض <span className="text-amber-500">المشاريع</span>
@@ -312,7 +313,13 @@ export default function ProjectsShowcase() {
         {!isLoading && !error && projects.length > 0 && (
           <div className="mt-12 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
             {projects.map((project) => {
-              const whatsappUrl = "https://wa.me/message/BACRFFVZ3LOXH1";
+              const whatsappUrl = getProjectWhatsAppUrl({
+                projectName: project.name,
+                location: project.location,
+                price: project.price,
+                developer: project.developer,
+                locale: language === "ar" ? "ar" : "en",
+              });
 
               return (
                 <article
@@ -334,7 +341,7 @@ export default function ProjectsShowcase() {
                   {/* Card Body */}
                   <div className="flex flex-1 flex-col p-5">
                     {/* Project Title (Gold/Amber) */}
-                    <h3 className="font-[family-name:var(--font-outfit)] text-lg font-medium text-amber-500 line-clamp-1">
+                    <h3 className="font-serif text-lg font-medium text-amber-500 line-clamp-1 tracking-tight rtl:font-[family-name:var(--font-cairo)] rtl:tracking-normal rtl:font-bold">
                       {project.name}
                     </h3>
 
@@ -440,7 +447,7 @@ export default function ProjectsShowcase() {
                   </div>
 
                   {/* Title */}
-                  <h3 className="mt-3 font-[family-name:var(--font-outfit)] text-2xl sm:text-3xl font-bold tracking-tight text-white">
+                  <h3 className="mt-3 font-serif text-2xl sm:text-3xl font-bold tracking-tight text-white rtl:font-[family-name:var(--font-cairo)] rtl:tracking-normal">
                     {selectedProject.name}
                   </h3>
 
@@ -703,11 +710,13 @@ export default function ProjectsShowcase() {
                     <ChevronRight className="h-4 w-4 rtl:rotate-180" />
                   </Link>
                   <a
-                    href={`https://wa.me/message/BACRFFVZ3LOXH1?text=${encodeURIComponent(
-                      language === "ar"
-                        ? `مرحباً، أود الاستفسار عن مشروع ${selectedProject.name}`
-                        : `Hello, I would like to inquire about ${selectedProject.name}`
-                    )}`}
+                    href={getProjectWhatsAppUrl({
+                      projectName: selectedProject.name,
+                      location: selectedProject.location,
+                      price: selectedProject.price,
+                      developer: selectedProject.developer,
+                      locale: language === "ar" ? "ar" : "en",
+                    })}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="flex w-full sm:flex-1 items-center justify-center gap-2 rounded-xl bg-emerald-500 px-5 py-3.5 text-xs sm:text-sm font-bold text-slate-950 shadow-[0_0_24px_rgba(16,185,129,0.35)] transition hover:bg-emerald-400 active:scale-[0.99]"
