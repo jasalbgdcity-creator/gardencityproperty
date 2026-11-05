@@ -18,16 +18,20 @@ export async function generateMetadata({
   const isAr = locale === "ar";
   const baseUrl = "https://www.gardencityproperties.net";
 
-  const title = isAr
-    ? "جاردن سيتي بروبرتيز | عقارات وتقييم أصول مسقط عمان"
-    : "Garden City Properties | Real Estate & Valuation Muscat Oman";
+  const titleText = isAr
+    ? "جاردن سيتي بروبرتيز | عقارات فاخرة في مسقط عمان"
+    : "Garden City Properties | Luxury Real Estate in Muscat";
 
   const description = isAr
     ? "استشارات عقارية رائدة وتقييم عقاري معتمد وخدمات وساطة موثوقة في مسقط، سلطنة عمان. نساعدك على تعظيم قيمة أصولك العقارية بنجاح."
     : "Premier real estate consultancy, certified property valuation, and brokerage services in Muscat, Sultanate of Oman. Maximize your asset value.";
 
   return {
-    title,
+    title: {
+      default: titleText,
+      template: isAr ? "%s | جاردن سيتي بروبرتيز" : "%s | Garden City Properties",
+      absolute: titleText,
+    },
     description,
     metadataBase: new URL(baseUrl),
     alternates: {
@@ -39,7 +43,7 @@ export async function generateMetadata({
       },
     },
     openGraph: {
-      title,
+      title: titleText,
       description,
       url: isAr ? `${baseUrl}/ar/` : `${baseUrl}/en/`,
       type: "website",
@@ -51,13 +55,13 @@ export async function generateMetadata({
           url: "/Logo.jpeg",
           width: 1280,
           height: 532,
-          alt: "Garden City Properties",
+          alt: titleText,
         },
       ],
     },
     twitter: {
       card: "summary_large_image",
-      title,
+      title: titleText,
       description,
       images: ["/Logo.jpeg"],
     },

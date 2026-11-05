@@ -44,16 +44,38 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     .single();
 
   if (!project) {
+    const notFoundTitle = isAr
+      ? "المشروع غير موجود | جاردن سيتي بروبرتيز"
+      : "Project Not Found | Garden City Properties";
     return {
-      title: isAr
-        ? "المشروع غير موجود | جاردن سيتي بروبرتيز"
-        : "Project Not Found | Garden City Properties",
+      title: { absolute: notFoundTitle },
+      robots: { index: false, follow: false },
     };
   }
 
-  const title = isAr
-    ? `${project.name} | مشاريع عقارية استثمارية في ${project.location || "مسقط"} عمان`
-    : `${project.name} | Luxury Property Investment in ${project.location || "Muscat"} Oman`;
+  // Construct crisp, unique, < 70 chars title
+  const projectName = (project.name || "Development").trim();
+  const location = (project.location || (isAr ? "مسقط" : "Muscat")).trim();
+
+  let pageTitle = "";
+  if (isAr) {
+    const hasLocation = projectName.includes(location);
+    pageTitle = hasLocation
+      ? `${projectName} | جاردن سيتي بروبرتيز عمان`
+      : `${projectName} في ${location} | جاردن سيتي بروبرتيز`;
+  } else {
+    const hasLocation = projectName.toLowerCase().includes(location.toLowerCase());
+    pageTitle = hasLocation
+      ? `${projectName} | Garden City Properties Oman`
+      : `${projectName} in ${location} | Garden City Properties`;
+  }
+
+  // Ensure title is strictly under 70 characters
+  if (pageTitle.length > 68) {
+    pageTitle = isAr
+      ? `${projectName.slice(0, 36)} | جاردن سيتي بروبرتيز`
+      : `${projectName.slice(0, 42)} | Garden City Properties`;
+  }
 
   const description = isAr
     ? `مشروع ${project.name} في ${project.location || "مسقط"} من تطوير ${project.developer}. ابتداءً من ${project.price} مع خطط سداد ميسرة في سلطنة عمان.`
@@ -62,7 +84,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const ogImages = project.image ? [{ url: project.image, width: 1200, height: 630, alt: project.name }] : [];
 
   return {
-    title,
+    title: {
+      absolute: pageTitle,
+    },
     description,
     metadataBase: new URL(baseUrl),
     alternates: {
@@ -74,7 +98,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       },
     },
     openGraph: {
-      title,
+      title: pageTitle,
       description,
       url: `${baseUrl}/${locale}/projects/${slug}/`,
       type: "article",
@@ -82,7 +106,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     },
     twitter: {
       card: "summary_large_image",
-      title,
+      title: pageTitle,
       description,
       images: project.image ? [project.image] : [],
     },

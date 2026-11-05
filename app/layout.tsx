@@ -13,8 +13,7 @@ export const viewport: Viewport = {
 
 export const metadata: Metadata = {
   title: {
-    default:
-      "Garden City Properties | Real Estate & Valuation Muscat Oman",
+    default: "Garden City Properties | Luxury Real Estate in Muscat",
     template: "%s | Garden City Properties",
   },
   description:
@@ -40,8 +39,7 @@ export const metadata: Metadata = {
     },
   },
   openGraph: {
-    title:
-      "Garden City Properties | Real Estate & Valuation Muscat Oman",
+    title: "Garden City Properties | Luxury Real Estate in Muscat",
     description:
       "Premier real estate consultancy, certified property valuation, and brokerage services in Muscat, Sultanate of Oman. Maximize your asset value.",
     url: "https://www.gardencityproperties.net",
@@ -54,14 +52,13 @@ export const metadata: Metadata = {
         url: "/Logo.jpeg",
         width: 1280,
         height: 532,
-        alt: "Garden City Properties | Real Estate & Valuation Muscat Oman",
+        alt: "Garden City Properties | Luxury Real Estate in Muscat",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title:
-      "Garden City Properties | Real Estate & Valuation Muscat Oman",
+    title: "Garden City Properties | Luxury Real Estate in Muscat",
     description:
       "Premier real estate consultancy, certified property valuation, and brokerage services in Muscat, Sultanate of Oman. Maximize your asset value.",
     images: ["/Logo.jpeg"],
