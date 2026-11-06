@@ -1797,6 +1797,9 @@
     --tw-gradient-position: to top in oklab;
     background-image: linear-gradient(var(--tw-gradient-stops));
   }
+  .bg-\[radial-gradient\(circle_at_50\%_40\%\,rgba\(245\,158\,11\,0\.08\)\,transparent_70\%\)\] {
+    background-image: radial-gradient(circle at 50% 40%,rgba(245,158,11,0.08),transparent 70%);
+  }
   .from-\[\#050816\] {
     --tw-gradient-from: #050816;
     --tw-gradient-stops: var(--tw-gradient-via-stops, var(--tw-gradient-position), var(--tw-gradient-from) var(--tw-gradient-from-position), var(--tw-gradient-to) var(--tw-gradient-to-position));
@@ -1870,6 +1873,11 @@
       --tw-gradient-from: color-mix(in oklab, var(--color-slate-950) 95%, transparent);
     }
     --tw-gradient-stops: var(--tw-gradient-via-stops, var(--tw-gradient-position), var(--tw-gradient-from) var(--tw-gradient-from-position), var(--tw-gradient-to) var(--tw-gradient-to-position));
+  }
+  .via-\[\#070d1e\] {
+    --tw-gradient-via: #070d1e;
+    --tw-gradient-via-stops: var(--tw-gradient-position), var(--tw-gradient-from) var(--tw-gradient-from-position), var(--tw-gradient-via) var(--tw-gradient-via-position), var(--tw-gradient-to) var(--tw-gradient-to-position);
+    --tw-gradient-stops: var(--tw-gradient-via-stops);
   }
   .via-\[\#050816\]\/50 {
     --tw-gradient-via: color-mix(in oklab, #050816 50%, transparent);
@@ -1972,6 +1980,10 @@
   }
   .to-sky-400 {
     --tw-gradient-to: var(--color-sky-400);
+    --tw-gradient-stops: var(--tw-gradient-via-stops, var(--tw-gradient-position), var(--tw-gradient-from) var(--tw-gradient-from-position), var(--tw-gradient-to) var(--tw-gradient-to-position));
+  }
+  .to-slate-900 {
+    --tw-gradient-to: var(--color-slate-900);
     --tw-gradient-stops: var(--tw-gradient-via-stops, var(--tw-gradient-position), var(--tw-gradient-from) var(--tw-gradient-from-position), var(--tw-gradient-to) var(--tw-gradient-to-position));
   }
   .to-slate-950 {
@@ -2629,6 +2641,10 @@
   }
   .shadow-\[0_0_20px_rgba\(56\,189\,248\,0\.35\)\] {
     --tw-shadow: 0 0 20px var(--tw-shadow-color, rgba(56,189,248,0.35));
+    box-shadow: var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow);
+  }
+  .shadow-\[0_0_20px_rgba\(245\,158\,11\,0\.15\)\] {
+    --tw-shadow: 0 0 20px var(--tw-shadow-color, rgba(245,158,11,0.15));
     box-shadow: var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow);
   }
   .shadow-\[0_0_24px_rgba\(16\,185\,129\,0\.35\)\] {
@@ -3815,6 +3831,26 @@ html[dir="rtl"] .font-serif, html[dir="rtl"] [class*="font-serif"], html[dir="rt
 ::selection {
   background: rgba(56, 189, 248, 0.28);
   color: #f8fafc;
+}
+@keyframes heroTitleFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.animate-hero-title {
+  animation: heroTitleFadeIn 0.7s cubic-bezier(0.22, 1, 0.36, 1) 0.1s backwards;
+}
+@media (prefers-reduced-motion: reduce) {
+  .animate-hero-title {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
 }
 @property --tw-translate-x {
   syntax: "*";

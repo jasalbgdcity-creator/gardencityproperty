@@ -49,3 +49,26 @@ html[dir="rtl"] [class*="font-\[family-name\:var\(--font-serif\)\]"] {
   background: rgba(56, 189, 248, 0.28);
   color: #f8fafc;
 }
+
+@keyframes heroTitleFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-hero-title {
+  animation: heroTitleFadeIn 0.7s cubic-bezier(0.22, 1, 0.36, 1) 0.1s backwards;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-hero-title {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+}

@@ -30,25 +30,35 @@ export function proxy(request: NextRequest) {
     return NextResponse.next();
   }
 
+  // Forward pathname to server components for locale and direction detection
+  const requestHeaders = new Headers(request.headers);
+  requestHeaders.set("x-current-path", pathname);
+
+  // Allow root "/" to pass through to next.config.ts permanent 308 redirect
+  if (pathname === "/") {
+    return NextResponse.next({
+      request: {
+        headers: requestHeaders,
+      },
+    });
+  }
+
   // Check if pathname has a supported locale
   const pathnameHasLocale = LOCALES.some(
     (locale) => pathname.startsWith(`/${locale}/`) || pathname === `/${locale}`
   );
 
   if (pathnameHasLocale) {
-    return NextResponse.next();
+    return NextResponse.next({
+      request: {
+        headers: requestHeaders,
+      },
+    });
   }
 
-  // Root "/" or paths missing locale: check cookie or Accept-Language header
-  const cookieLocale = request.cookies.get("gcp-language")?.value;
-  const acceptLang = request.headers.get("accept-language") || "";
-  const preferredLocale =
-    cookieLocale === "ar" || (!cookieLocale && acceptLang.toLowerCase().includes("ar"))
-      ? "ar"
-      : "en";
-
-  const targetPath = pathname === "/" ? `/${preferredLocale}` : `/${preferredLocale}${pathname}`;
-  return NextResponse.redirect(new URL(targetPath, request.url));
+  // Paths missing locale: redirect directly with trailing slash
+  const targetPath = `/en${pathname.endsWith("/") ? pathname : pathname + "/"}`;
+  return NextResponse.redirect(new URL(targetPath, request.url), 308);
 }
 
 export const config = {

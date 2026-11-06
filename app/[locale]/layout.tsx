@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
+import Script from "next/script";
 import { notFound } from "next/navigation";
 import { LanguageProvider, type Language } from "@/context/LanguageContext";
 import LanguageShell from "@/components/LanguageShell";
@@ -64,6 +65,10 @@ export async function generateMetadata({
       title: titleText,
       description,
       images: ["/Logo.jpeg"],
+    },
+    other: {
+      "content-language": isAr ? "ar-OM, ar" : "en-OM, en",
+      language: isAr ? "Arabic" : "English",
     },
   };
 }
@@ -169,19 +174,16 @@ export default async function LocaleLayout({
 
   return (
     <LanguageProvider initialLanguage={lang}>
+      <meta httpEquiv="content-language" content={isAr ? "ar-OM, ar" : "en-OM, en"} />
+      <meta name="language" content={isAr ? "Arabic" : "English"} />
+      <Script
+        id={`json-ld-locale-${locale}`}
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(localeJsonLd),
+        }}
+      />
       <LanguageShell locale={lang}>
-        <script
-          id={`json-ld-locale-${locale}`}
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{
-            __html: JSON.stringify(localeJsonLd),
-          }}
-        />
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `document.documentElement.lang="${lang}";document.documentElement.dir="${isAr ? "rtl" : "ltr"}";`,
-          }}
-        />
         {children}
         <FloatingWhatsApp />
       </LanguageShell>

@@ -1,5 +1,5 @@
-import LocaleHomePage from "@/app/[locale]/page";
+import { redirect } from "next/navigation";
 
 export default function RootPage() {
-  return <LocaleHomePage />;
+  redirect("/en/");
 }

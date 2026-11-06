@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, useId, useMemo, FormEvent } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import PropertyImage from "@/components/PropertyImage";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Building2,
@@ -828,7 +829,7 @@ Client Note: ${message}`,
             animate={{ scale: 1.02 }}
             transition={{ duration: 7, ease: [0.16, 1, 0.3, 1] }}
           >
-            <Image
+            <PropertyImage
               src={project.image}
               alt={title}
               fill
@@ -836,6 +837,8 @@ Client Note: ${message}`,
               quality={90}
               sizes="100vw"
               className="object-cover object-center"
+              fallbackLabel={title}
+              fallbackSublabel={project.developer}
             />
           </motion.div>
           {/* Multi-layered cinematic gradient overlays */}
@@ -1246,12 +1249,13 @@ Client Note: ${message}`,
                     className="relative h-60 w-full overflow-hidden bg-slate-950 cursor-pointer"
                   >
                     {coverImg ? (
-                      <Image
+                      <PropertyImage
                         src={coverImg}
                         alt={confTitle}
                         fill
                         sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
                         quality={85}
+                        fallbackLabel={confTitle}
                         className="object-cover transition-transform duration-700 ease-out group-hover:scale-105"
                       />
                     ) : (
@@ -1854,13 +1858,15 @@ Client Note: ${message}`,
                   idx === 0 ? "sm:col-span-2 lg:col-span-2 h-[320px] sm:h-[420px]" : "h-[260px] sm:h-[320px]"
                 }`}
               >
-                <Image
+                <PropertyImage
                   src={imgUrl}
                   alt={`${title} visual ${idx + 1}`}
                   fill
                   sizes={idx === 0 ? "(max-width: 1024px) 100vw, 66vw" : "(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"}
                   quality={90}
                   className="object-cover transition-transform duration-700 ease-out group-hover:scale-105"
+                  fallbackLabel={title}
+                  fallbackSublabel={`Gallery Image ${idx + 1}`}
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-5">
                   <span className="inline-flex items-center gap-2 rounded-xl bg-slate-950/80 px-3.5 py-1.5 text-xs font-semibold text-white border border-white/15 backdrop-blur-md">
@@ -2889,12 +2895,13 @@ Client Note: ${message}`,
                   className="group flex flex-col overflow-hidden rounded-2xl border border-white/10 bg-slate-900/60 transition-all duration-300 hover:-translate-y-1 hover:border-sky-400/40 hover:shadow-2xl"
                 >
                   <div className="relative h-56 w-full overflow-hidden bg-slate-950">
-                    <Image
+                    <PropertyImage
                       src={rel.image}
                       alt={rel.name}
                       fill
                       sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
                       quality={85}
+                      fallbackLabel={rel.name}
                       className="object-cover transition-transform duration-700 ease-out group-hover:scale-105"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent" />

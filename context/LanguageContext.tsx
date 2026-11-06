@@ -48,7 +48,7 @@ const dictionaries = {
       generalManager: "General Manager",
       leaders: [
         {
-          src: "/MD.PNG",
+          src: "/MD.jpeg",
           name: "MOHAMED AL HARTHY",
           title: "Managing Director",
           bio: (
@@ -268,7 +268,7 @@ const dictionaries = {
       generalManager: "المدير العام",
       leaders: [
         {
-          src: "/MD.PNG",
+          src: "/MD.jpeg",
           name: "الفاضل محمد الحارثي",
           title: "العضو المنتدب",
           bio: (

@@ -110,6 +110,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       description,
       images: project.image ? [project.image] : [],
     },
+    other: {
+      "content-language": isAr ? "ar-OM, ar" : "en-OM, en",
+      language: isAr ? "Arabic" : "English",
+    },
   };
 }
 

@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import PropertyImage from "@/components/PropertyImage";
 import { motion } from "framer-motion";
 import {
   AlertCircle,
@@ -338,12 +339,14 @@ export default function ProjectsShowcase() {
                 >
                   {/* Project Image */}
                   <div className="relative h-[230px] w-full overflow-hidden bg-slate-900">
-                    <Image
+                    <PropertyImage
                       src={project.image}
                       alt={`${project.name} - Luxury Property in Oman developed by ${project.developer}`}
                       fill
                       sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
                       quality={85}
+                      fallbackLabel={project.name}
+                      fallbackSublabel={project.developer}
                       className="object-cover transition-transform duration-700 ease-out group-hover:scale-105"
                     />
                     <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-slate-900/60 via-transparent to-transparent opacity-60" />
@@ -485,12 +488,13 @@ export default function ProjectsShowcase() {
                             : "opacity-0 z-0 pointer-events-none"
                         }`}
                       >
-                        <Image
+                        <PropertyImage
                           src={slideUrl}
                           alt={`${selectedProject.name} - View ${idx + 1}`}
                           fill
                           sizes="(max-width: 1024px) 100vw, 600px"
                           quality={85}
+                          fallbackLabel={selectedProject.name}
                           className="object-cover"
                         />
                       </div>
@@ -674,11 +678,13 @@ export default function ProjectsShowcase() {
                     {/* Floor Plan Visual */}
                     <div className="relative h-28 w-full sm:w-36 shrink-0 overflow-hidden rounded-xl border border-white/10 bg-slate-900 flex items-center justify-center group/fp">
                       {selectedProject.floor_plan_url ? (
-                        <Image
+                        <PropertyImage
                           src={selectedProject.floor_plan_url}
                           alt="Floor Plan"
                           fill
                           sizes="(max-width: 640px) 100vw, 144px"
+                          fallbackLabel={selectedProject.name}
+                          fallbackSublabel="Floor Plan"
                           className="object-contain p-1"
                         />
                       ) : (

@@ -1,6 +1,7 @@
 /* eslint-disable @next/next/no-page-custom-font */
 import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
+import { headers } from "next/headers";
 import Script from "next/script";
 import LanguageShell from "@/components/LanguageShell";
 import "./globals.css";
@@ -72,9 +73,7 @@ export const metadata: Metadata = {
       { url: "/icon.png", type: "image/png", sizes: "512x512" },
     ],
     shortcut: ["/favicon.ico"],
-    apple: [
-      { url: "/icon.png", sizes: "180x180", type: "image/png" },
-    ],
+    apple: [{ url: "/icon.png", sizes: "180x180", type: "image/png" }],
   },
   robots: {
     index: true,
@@ -87,13 +86,29 @@ export const metadata: Metadata = {
       "max-snippet": -1,
     },
   },
+  other: {
+    "content-language": "en-OM, en",
+    language: "English",
+  },
 };
 
-export default function RootLayout({ children }: { children: ReactNode }) {
+export default async function RootLayout({ children }: { children: ReactNode }) {
+  const headerList = await headers();
+  const matchedPath =
+    headerList.get("x-current-path") ||
+    headerList.get("x-matched-path") ||
+    headerList.get("x-invoke-path") ||
+    headerList.get("next-url") ||
+    headerList.get("x-forwarded-uri") ||
+    "";
+  const isAr = matchedPath.startsWith("/ar");
+  const lang = isAr ? "ar" : "en";
+  const dir = isAr ? "rtl" : "ltr";
+
   return (
     <html
-      lang="en"
-      dir="ltr"
+      lang={lang}
+      dir={dir}
       data-scroll-behavior="smooth"
       suppressHydrationWarning
       className="dark h-full antialiased"
@@ -252,19 +267,6 @@ export default function RootLayout({ children }: { children: ReactNode }) {
                 },
               ],
             }),
-          }}
-        />
-        <Script
-          id="theme-lang-script"
-          strategy="beforeInteractive"
-          dangerouslySetInnerHTML={{
-            __html: `(function(){
-              try {
-                var lang = localStorage.getItem('gcp-language') || 'en';
-                document.documentElement.lang = lang;
-                document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
-              } catch(e) {}
-            })();`,
           }}
         />
       </head>
