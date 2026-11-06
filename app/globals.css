@@ -3035,9 +3035,6 @@
         border-color: color-mix(in oklab, var(--color-sky-400) 60%, transparent);
       }
     }
-    .hover\:border-slate-600:hover {
-      border-color: var(--color-slate-600);
-    }
     .hover\:border-white\/10:hover {
       border-color: color-mix(in srgb, #fff 10%, transparent);
     }
@@ -3503,9 +3500,6 @@
     }
     .sm\:self-center {
       align-self: center;
-    }
-    .sm\:object-contain {
-      object-fit: contain;
     }
     .sm\:p-4 {
       padding: calc(var(--spacing) * 4);

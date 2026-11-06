@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Menu, X } from "lucide-react";
@@ -27,11 +28,15 @@ export default function Navbar() {
           href={language === "ar" ? "/ar/" : "/en/"}
           className="flex items-center shrink-0 focus:outline-none"
         >
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
+          <Image
             src="/Logo.jpeg"
             alt="Garden City Properties - Real Estate Consultancy & Brokerage in Oman"
+            width={1280}
+            height={532}
+            priority
+            quality={90}
             className="w-48 md:w-64 h-auto object-contain"
+            style={{ height: "auto" }}
           />
         </Link>
 

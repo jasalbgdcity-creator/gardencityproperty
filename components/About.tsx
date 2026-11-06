@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import { Volume2, VolumeX } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
+import AnimatedCounter from "@/components/AnimatedCounter";
 
 export default function About() {
   const { dictionary, language } = useLanguage();
@@ -141,16 +142,20 @@ export default function About() {
           </h2>
           <p className="mt-6 font-sans text-base leading-8 text-slate-300">{copy.body}</p>
           <div className="mt-10 grid grid-cols-3 gap-2 sm:gap-4">
-            {copy.stats.map((stat) => (
-              <div
+            {copy.stats.map((stat, idx) => (
+              <motion.div
                 key={stat.label}
-                className="rounded-2xl border border-white/10 bg-white/5 px-2.5 py-3.5 sm:px-3 sm:py-4 text-center sm:text-start backdrop-blur-md"
+                initial={{ opacity: 0, y: 16 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, amount: 0.3 }}
+                transition={{ duration: 0.5, delay: 0.2 + idx * 0.08, ease: [0.22, 1, 0.36, 1] }}
+                className="rounded-2xl border border-white/10 bg-white/5 px-2.5 py-3.5 sm:px-3 sm:py-4 text-center sm:text-start backdrop-blur-md transition-all duration-300 hover:border-sky-400/40 hover:bg-white/10 hover:-translate-y-0.5"
               >
                 <p className="font-[family-name:var(--font-outfit)] text-base sm:text-lg font-semibold text-sky-300">
-                  {stat.value}
+                  <AnimatedCounter value={stat.value} />
                 </p>
                 <p className="mt-1 text-[0.7rem] sm:text-xs text-slate-400">{stat.label}</p>
-              </div>
+              </motion.div>
             ))}
           </div>
         </motion.div>

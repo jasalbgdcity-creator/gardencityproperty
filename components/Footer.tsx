@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { Mail, MapPin, Phone } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
@@ -76,11 +77,14 @@ export default function Footer() {
           {/* COLUMN 1: BRAND & ABOUT */}
           <div className="flex flex-col items-start">
             <Link href={`/${language}/#home`} className="inline-block focus:outline-none">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
+              <Image
                 src="/Logo.jpeg"
                 alt="Garden City Properties - Real Estate Consultancy & Brokerage in Oman"
+                width={1280}
+                height={532}
+                quality={85}
                 className="h-12 w-auto object-contain"
+                style={{ width: "auto" }}
               />
             </Link>
             <p className="mt-4 max-w-sm text-sm leading-relaxed text-gray-400">

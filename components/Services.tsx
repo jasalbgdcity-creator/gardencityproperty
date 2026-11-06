@@ -48,8 +48,8 @@ export default function Services() {
                 key={service.title}
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, amount: 0.2 }}
-                transition={{ duration: 0.45, delay: index * 0.06 }}
+                viewport={{ once: true, amount: 0.15 }}
+                transition={{ duration: 0.5, delay: index * 0.06, ease: [0.22, 1, 0.36, 1] }}
                 className="group flex h-full flex-col rounded-2xl border border-white/10 bg-white/5 p-7 backdrop-blur-xl transition-all duration-300 ease-in-out hover:-translate-y-1 hover:border-sky-400/50 hover:shadow-[0_0_32px_rgba(56,189,248,0.2)]"
               >
                 <div className="flex h-12 w-12 items-center justify-center rounded-xl border border-white/10 bg-slate-950/60 text-sky-300 transition-colors group-hover:border-sky-400/40 group-hover:text-cyan-200">

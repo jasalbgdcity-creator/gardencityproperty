@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { motion } from "framer-motion";
 import { Mail, Phone } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
@@ -45,11 +46,13 @@ export default function Leadership() {
             >
               {/* Leader Portrait */}
               <div className="relative h-80 w-full shrink-0 overflow-hidden bg-slate-900 sm:h-96">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
+                <Image
                   src={leader.src}
                   alt={`${leader.name} - ${leader.title} of Garden City Properties Oman`}
-                  className="h-full w-full object-cover object-top transition-transform duration-500 group-hover:scale-105"
+                  fill
+                  sizes="(max-width: 1024px) 100vw, 50vw"
+                  quality={90}
+                  className="object-cover object-top transition-transform duration-700 ease-out group-hover:scale-105"
                 />
                 <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/25 to-transparent opacity-75" />
                 <div className="absolute inset-x-0 bottom-0 p-6">

@@ -1,7 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
+import { motion } from "framer-motion";
 import {
   AlertCircle,
   Building2,
@@ -312,7 +314,7 @@ export default function ProjectsShowcase() {
         {/* Dynamic Projects Grid */}
         {!isLoading && !error && projects.length > 0 && (
           <div className="mt-12 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {projects.map((project) => {
+            {projects.map((project, index) => {
               const whatsappUrl = getProjectWhatsAppUrl({
                 projectName: project.name,
                 location: project.location,
@@ -322,18 +324,27 @@ export default function ProjectsShowcase() {
               });
 
               return (
-                <article
+                <motion.article
                   key={project.id}
-                  className="group flex flex-col overflow-hidden rounded-xl border border-slate-700 bg-slate-800 shadow-lg transition-all duration-300 hover:-translate-y-1 hover:border-slate-600 hover:shadow-2xl"
+                  initial={{ opacity: 0, y: 24 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, amount: 0.1 }}
+                  transition={{
+                    duration: 0.5,
+                    delay: (index % 6) * 0.08,
+                    ease: [0.22, 1, 0.36, 1],
+                  }}
+                  className="group flex flex-col overflow-hidden rounded-xl border border-slate-700 bg-slate-800 shadow-lg transition-all duration-300 hover:-translate-y-1 hover:border-sky-400/50 hover:shadow-[0_0_32px_rgba(56,189,248,0.2)]"
                 >
                   {/* Project Image */}
                   <div className="relative h-[230px] w-full overflow-hidden bg-slate-900">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
+                    <Image
                       src={project.image}
                       alt={`${project.name} - Luxury Property in Oman developed by ${project.developer}`}
-                      loading="lazy"
-                      className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                      fill
+                      sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                      quality={85}
+                      className="object-cover transition-transform duration-700 ease-out group-hover:scale-105"
                     />
                     <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-slate-900/60 via-transparent to-transparent opacity-60" />
                   </div>
@@ -404,7 +415,7 @@ export default function ProjectsShowcase() {
                       </a>
                     </div>
                   </div>
-                </article>
+                </motion.article>
               );
             })}
           </div>
@@ -466,24 +477,32 @@ export default function ProjectsShowcase() {
                 >
                   {modalSlides.length > 0 ? (
                     modalSlides.map((slideUrl, idx) => (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img
+                      <div
                         key={slideUrl + idx}
-                        src={slideUrl}
-                        alt={`${selectedProject.name} - View ${idx + 1}`}
-                        className={`absolute inset-0 h-full w-full object-cover transition-opacity duration-700 ease-in-out ${
+                        className={`absolute inset-0 h-full w-full transition-opacity duration-700 ease-in-out ${
                           idx === currentSlide
                             ? "opacity-100 z-10"
                             : "opacity-0 z-0 pointer-events-none"
                         }`}
-                      />
+                      >
+                        <Image
+                          src={slideUrl}
+                          alt={`${selectedProject.name} - View ${idx + 1}`}
+                          fill
+                          sizes="(max-width: 1024px) 100vw, 600px"
+                          quality={85}
+                          className="object-cover"
+                        />
+                      </div>
                     ))
                   ) : (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img
+                    <Image
                       src={selectedProject.image}
                       alt={selectedProject.name}
-                      className="h-full w-full object-cover"
+                      fill
+                      sizes="(max-width: 1024px) 100vw, 600px"
+                      quality={85}
+                      className="object-cover"
                     />
                   )}
 
@@ -655,11 +674,12 @@ export default function ProjectsShowcase() {
                     {/* Floor Plan Visual */}
                     <div className="relative h-28 w-full sm:w-36 shrink-0 overflow-hidden rounded-xl border border-white/10 bg-slate-900 flex items-center justify-center group/fp">
                       {selectedProject.floor_plan_url ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img
+                        <Image
                           src={selectedProject.floor_plan_url}
                           alt="Floor Plan"
-                          className="w-full h-full object-contain rounded-lg"
+                          fill
+                          sizes="(max-width: 640px) 100vw, 144px"
+                          className="object-contain p-1"
                         />
                       ) : (
                         <div className="flex flex-col items-center justify-center p-3 text-center text-slate-500">

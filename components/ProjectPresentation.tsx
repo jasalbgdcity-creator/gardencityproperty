@@ -54,6 +54,7 @@ import {
   getGeneralWhatsAppUrl,
 } from "@/lib/whatsapp";
 import { renderAmenityIcon, renderMilestoneIcon } from "@/lib/projectIcons";
+import AnimatedCounter from "@/components/AnimatedCounter";
 
 export interface PropertyConfiguration {
   id?: string;
@@ -820,15 +821,23 @@ Client Note: ${message}`,
           ========================================================================= */}
       <section className="relative min-h-[85vh] lg:min-h-[92vh] w-full flex items-end overflow-hidden pb-16 pt-32">
         {/* Hero Background Image with Parallax Glow */}
-        <div className="absolute inset-0 z-0">
-          <Image
-            src={project.image}
-            alt={title}
-            fill
-            priority
-            sizes="100vw"
-            className="object-cover object-center scale-105 transition-transform duration-1000 ease-out"
-          />
+        <div className="absolute inset-0 z-0 overflow-hidden">
+          <motion.div
+            className="relative h-full w-full"
+            initial={{ scale: 1.07 }}
+            animate={{ scale: 1.02 }}
+            transition={{ duration: 7, ease: [0.16, 1, 0.3, 1] }}
+          >
+            <Image
+              src={project.image}
+              alt={title}
+              fill
+              priority
+              quality={90}
+              sizes="100vw"
+              className="object-cover object-center"
+            />
+          </motion.div>
           {/* Multi-layered cinematic gradient overlays */}
           <div className="absolute inset-0 bg-gradient-to-t from-[#050816] via-[#050816]/70 to-[#050816]/30" />
           <div className="absolute inset-0 bg-gradient-to-r from-[#050816]/90 via-[#050816]/50 to-transparent rtl:bg-gradient-to-l rtl:from-[#050816]/90 rtl:via-[#050816]/50 rtl:to-transparent" />
@@ -1052,7 +1061,13 @@ Client Note: ${message}`,
 
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
             {/* Stat 1: Price */}
-            <div className="rounded-2xl border border-white/10 bg-slate-900/70 p-5 backdrop-blur-md text-center transition hover:border-sky-400/40">
+            <motion.div
+              initial={{ opacity: 0, y: 16 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, amount: 0.2 }}
+              transition={{ duration: 0.45, delay: 0.04, ease: [0.22, 1, 0.36, 1] }}
+              className="rounded-2xl border border-white/10 bg-slate-900/70 p-5 backdrop-blur-md text-center transition hover:border-sky-400/40 hover:-translate-y-0.5"
+            >
               <Coins className="h-6 w-6 text-amber-400 mx-auto mb-2" />
               <p className="text-[11px] font-medium text-slate-400">
                 {copy.startingPrice || (isAr ? "السعر الابتدائي" : "Starting Price")}
@@ -1060,10 +1075,16 @@ Client Note: ${message}`,
               <p className="mt-1 font-[family-name:var(--font-outfit)] text-lg sm:text-xl font-bold text-white">
                 {price}
               </p>
-            </div>
+            </motion.div>
 
             {/* Stat 2: Area */}
-            <div className="rounded-2xl border border-white/10 bg-slate-900/70 p-5 backdrop-blur-md text-center transition hover:border-sky-400/40">
+            <motion.div
+              initial={{ opacity: 0, y: 16 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, amount: 0.2 }}
+              transition={{ duration: 0.45, delay: 0.08, ease: [0.22, 1, 0.36, 1] }}
+              className="rounded-2xl border border-white/10 bg-slate-900/70 p-5 backdrop-blur-md text-center transition hover:border-sky-400/40 hover:-translate-y-0.5"
+            >
               <Square className="h-6 w-6 text-sky-400 mx-auto mb-2" />
               <p className="text-[11px] font-medium text-slate-400">
                 {copy.startingArea || (isAr ? "المساحة الابتدائية" : "Starting Area")}
@@ -1071,10 +1092,16 @@ Client Note: ${message}`,
               <p className="mt-1 font-[family-name:var(--font-outfit)] text-lg sm:text-xl font-bold text-white">
                 {area}
               </p>
-            </div>
+            </motion.div>
 
             {/* Stat 3: Handover */}
-            <div className="rounded-2xl border border-white/10 bg-slate-900/70 p-5 backdrop-blur-md text-center transition hover:border-sky-400/40">
+            <motion.div
+              initial={{ opacity: 0, y: 16 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, amount: 0.2 }}
+              transition={{ duration: 0.45, delay: 0.12, ease: [0.22, 1, 0.36, 1] }}
+              className="rounded-2xl border border-white/10 bg-slate-900/70 p-5 backdrop-blur-md text-center transition hover:border-sky-400/40 hover:-translate-y-0.5"
+            >
               <CalendarDays className="h-6 w-6 text-emerald-400 mx-auto mb-2" />
               <p className="text-[11px] font-medium text-slate-400">
                 {copy.handover || (isAr ? "تاريخ التسليم" : "Handover")}
@@ -1082,10 +1109,16 @@ Client Note: ${message}`,
               <p className="mt-1 font-[family-name:var(--font-outfit)] text-lg sm:text-xl font-bold text-white">
                 {completionDate}
               </p>
-            </div>
+            </motion.div>
 
             {/* Stat 4: Stage */}
-            <div className="rounded-2xl border border-white/10 bg-slate-900/70 p-5 backdrop-blur-md text-center transition hover:border-sky-400/40">
+            <motion.div
+              initial={{ opacity: 0, y: 16 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, amount: 0.2 }}
+              transition={{ duration: 0.45, delay: 0.16, ease: [0.22, 1, 0.36, 1] }}
+              className="rounded-2xl border border-white/10 bg-slate-900/70 p-5 backdrop-blur-md text-center transition hover:border-sky-400/40 hover:-translate-y-0.5"
+            >
               <Layers className="h-6 w-6 text-amber-400 mx-auto mb-2" />
               <p className="text-[11px] font-medium text-slate-400">
                 {copy.stage || (isAr ? "مرحلة البناء" : "Stage")}
@@ -1093,29 +1126,41 @@ Client Note: ${message}`,
               <p className="mt-1 font-[family-name:var(--font-outfit)] text-sm sm:text-base font-bold text-amber-300">
                 {constructionStage}
               </p>
-            </div>
+            </motion.div>
 
             {/* Stat 5: Freehold */}
-            <div className="rounded-2xl border border-white/10 bg-slate-900/70 p-5 backdrop-blur-md text-center transition hover:border-sky-400/40">
+            <motion.div
+              initial={{ opacity: 0, y: 16 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, amount: 0.2 }}
+              transition={{ duration: 0.45, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
+              className="rounded-2xl border border-white/10 bg-slate-900/70 p-5 backdrop-blur-md text-center transition hover:border-sky-400/40 hover:-translate-y-0.5"
+            >
               <ShieldCheck className="h-6 w-6 text-sky-400 mx-auto mb-2" />
               <p className="text-[11px] font-medium text-slate-400">
                 {isAr ? "سند الملكية" : "Title Deed"}
               </p>
               <p className="mt-1 font-[family-name:var(--font-outfit)] text-sm sm:text-base font-bold text-emerald-400">
-                {isAr ? "تملك حر دائم" : "100% Freehold"}
+                <AnimatedCounter value={isAr ? "تملك حر دائم 100%" : "100% Freehold"} />
               </p>
-            </div>
+            </motion.div>
 
             {/* Stat 6: Yield Potential */}
-            <div className="rounded-2xl border border-white/10 bg-slate-900/70 p-5 backdrop-blur-md text-center transition hover:border-sky-400/40">
+            <motion.div
+              initial={{ opacity: 0, y: 16 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, amount: 0.2 }}
+              transition={{ duration: 0.45, delay: 0.24, ease: [0.22, 1, 0.36, 1] }}
+              className="rounded-2xl border border-white/10 bg-slate-900/70 p-5 backdrop-blur-md text-center transition hover:border-sky-400/40 hover:-translate-y-0.5"
+            >
               <Percent className="h-6 w-6 text-cyan-400 mx-auto mb-2" />
               <p className="text-[11px] font-medium text-slate-400">
                 {isAr ? "عائد متوقع" : "Projected ROI"}
               </p>
               <p className="mt-1 font-[family-name:var(--font-outfit)] text-lg sm:text-xl font-bold text-cyan-300">
-                8 - 10%
+                <AnimatedCounter value="8 - 10%" />
               </p>
-            </div>
+            </motion.div>
           </div>
         </div>
       </section>
@@ -1201,11 +1246,13 @@ Client Note: ${message}`,
                     className="relative h-60 w-full overflow-hidden bg-slate-950 cursor-pointer"
                   >
                     {coverImg ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img
+                      <Image
                         src={coverImg}
                         alt={confTitle}
-                        className="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
+                        fill
+                        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                        quality={85}
+                        className="object-cover transition-transform duration-700 ease-out group-hover:scale-105"
                       />
                     ) : (
                       <div className="flex h-full w-full flex-col items-center justify-center bg-slate-950 text-slate-600">
@@ -1450,11 +1497,13 @@ Client Note: ${message}`,
                     <div className="space-y-3">
                       <div className="relative h-72 sm:h-96 w-full overflow-hidden rounded-2xl border border-white/10 bg-slate-950">
                         {activePhoto ? (
-                          // eslint-disable-next-line @next/next/no-img-element
-                          <img
+                          <Image
                             src={activePhoto}
                             alt={selectedConfigModal.name || "Configuration preview"}
-                            className="h-full w-full object-cover sm:object-contain bg-slate-950"
+                            fill
+                            sizes="(max-width: 1024px) 100vw, 600px"
+                            quality={90}
+                            className="object-contain"
                           />
                         ) : (
                           <div className="flex h-full w-full items-center justify-center text-slate-500 text-xs">
@@ -1478,8 +1527,14 @@ Client Note: ${message}`,
                                   : "border-white/10 opacity-70 hover:opacity-100"
                               }`}
                             >
-                              {/* eslint-disable-next-line @next/next/no-img-element */}
-                              <img src={pUrl} alt={`Thumbnail ${pIdx + 1}`} className="h-full w-full object-cover" />
+                              <Image
+                                src={pUrl}
+                                alt={`Thumbnail ${pIdx + 1}`}
+                                fill
+                                sizes="96px"
+                                quality={75}
+                                className="object-cover"
+                              />
                             </button>
                           ))}
                         </div>
@@ -1487,11 +1542,13 @@ Client Note: ${message}`,
                     </div>
                   ) : (
                     <div className="relative h-72 sm:h-96 w-full overflow-hidden rounded-2xl border border-white/10 bg-slate-950 flex items-center justify-center p-4">
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img
+                      <Image
                         src={selectedConfigModal.floor_plan_url || selectedConfigModal.floorPlanUrl || floorPlanUrl!}
                         alt="Floor Plan"
-                        className="h-full w-full object-contain cursor-pointer"
+                        fill
+                        sizes="(max-width: 1024px) 100vw, 600px"
+                        quality={85}
+                        className="object-contain cursor-pointer p-2"
                         onClick={() => setFloorPlanModalOpen(true)}
                       />
                       <button
@@ -1797,11 +1854,13 @@ Client Note: ${message}`,
                   idx === 0 ? "sm:col-span-2 lg:col-span-2 h-[320px] sm:h-[420px]" : "h-[260px] sm:h-[320px]"
                 }`}
               >
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
+                <Image
                   src={imgUrl}
                   alt={`${title} visual ${idx + 1}`}
-                  className="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
+                  fill
+                  sizes={idx === 0 ? "(max-width: 1024px) 100vw, 66vw" : "(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"}
+                  quality={90}
+                  className="object-cover transition-transform duration-700 ease-out group-hover:scale-105"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-5">
                   <span className="inline-flex items-center gap-2 rounded-xl bg-slate-950/80 px-3.5 py-1.5 text-xs font-semibold text-white border border-white/15 backdrop-blur-md">
@@ -1838,19 +1897,23 @@ Client Note: ${message}`,
 
                 <div className="relative h-72 sm:h-96 w-full overflow-hidden rounded-2xl border border-white/10 bg-slate-900 flex items-center justify-center p-3">
                   {floorPlanUrl ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img
+                    <Image
                       src={floorPlanUrl}
                       alt={`${title} Architectural Blueprint`}
-                      className="h-full w-full object-contain cursor-pointer transition hover:scale-105"
+                      fill
+                      sizes="(max-width: 1024px) 100vw, 60vw"
+                      quality={85}
+                      className="object-contain cursor-pointer transition-transform duration-500 hover:scale-105 p-2"
                       onClick={() => setFloorPlanModalOpen(true)}
                     />
                   ) : (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img
+                    <Image
                       src={gallery[0]}
                       alt={`${title} Plan`}
-                      className="h-full w-full object-contain cursor-pointer transition hover:scale-105"
+                      fill
+                      sizes="(max-width: 1024px) 100vw, 60vw"
+                      quality={85}
+                      className="object-contain cursor-pointer transition-transform duration-500 hover:scale-105 p-2"
                       onClick={() => setFloorPlanModalOpen(true)}
                     />
                   )}
@@ -2826,12 +2889,13 @@ Client Note: ${message}`,
                   className="group flex flex-col overflow-hidden rounded-2xl border border-white/10 bg-slate-900/60 transition-all duration-300 hover:-translate-y-1 hover:border-sky-400/40 hover:shadow-2xl"
                 >
                   <div className="relative h-56 w-full overflow-hidden bg-slate-950">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
+                    <Image
                       src={rel.image}
                       alt={rel.name}
-                      loading="lazy"
-                      className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                      fill
+                      sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                      quality={85}
+                      className="object-cover transition-transform duration-700 ease-out group-hover:scale-105"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent" />
                     <span className="absolute bottom-3 left-3 right-3 text-xs font-semibold text-amber-400">
@@ -2964,8 +3028,14 @@ Client Note: ${message}`,
                     lightboxIndex === idx ? "border-sky-400 scale-105" : "border-white/20 opacity-50 hover:opacity-100"
                   }`}
                 >
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={thumb} alt={`thumb ${idx}`} className="h-full w-full object-cover" />
+                  <Image
+                    src={thumb}
+                    alt={`thumb ${idx}`}
+                    fill
+                    sizes="80px"
+                    quality={75}
+                    className="object-cover"
+                  />
                 </button>
               ))}
             </div>

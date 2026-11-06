@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { motion } from "framer-motion";
 import { Mail, Phone } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
@@ -86,12 +87,16 @@ export default function Consultants() {
               >
                 {/* Circular Profile Image */}
                 <div className="relative h-44 w-44 shrink-0 overflow-hidden rounded-full border-2 border-sky-400/40 bg-slate-950 p-1 shadow-[0_0_24px_rgba(56,189,248,0.2)] transition-colors group-hover:border-sky-300">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={consultant.image}
-                    alt={`${consultant.name} - ${consultant.role} at Garden City Properties Oman`}
-                    className="h-full w-full rounded-full object-cover object-top transition-transform duration-500 group-hover:scale-105"
-                  />
+                  <div className="relative h-full w-full overflow-hidden rounded-full">
+                    <Image
+                      src={consultant.image}
+                      alt={`${consultant.name} - ${consultant.role} at Garden City Properties Oman`}
+                      fill
+                      sizes="176px"
+                      quality={85}
+                      className="object-cover object-top transition-transform duration-700 ease-out group-hover:scale-105"
+                    />
+                  </div>
                 </div>
 
                 {/* Consultant Details */}
