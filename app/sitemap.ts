@@ -48,7 +48,44 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     },
   ];
 
-  // 2. Dynamic Project / Property entries fetched from Supabase
+  // 2. Dedicated Section Canonical Routes (8 Localized URLs)
+  const sections = [
+    { slug: "about", priority: 0.85, changeFreq: "monthly" as const },
+    { slug: "projects", priority: 0.90, changeFreq: "weekly" as const },
+    { slug: "services", priority: 0.85, changeFreq: "monthly" as const },
+    { slug: "contact", priority: 0.80, changeFreq: "monthly" as const },
+  ];
+
+  const sectionRoutes: MetadataRoute.Sitemap = sections.flatMap((section) => [
+    {
+      url: `${baseUrl}/en/${section.slug}/`,
+      lastModified: now,
+      changeFrequency: section.changeFreq,
+      priority: section.priority,
+      alternates: {
+        languages: {
+          "en-OM": `${baseUrl}/en/${section.slug}/`,
+          "ar-OM": `${baseUrl}/ar/${section.slug}/`,
+          "x-default": `${baseUrl}/en/${section.slug}/`,
+        },
+      },
+    },
+    {
+      url: `${baseUrl}/ar/${section.slug}/`,
+      lastModified: now,
+      changeFrequency: section.changeFreq,
+      priority: section.priority,
+      alternates: {
+        languages: {
+          "en-OM": `${baseUrl}/en/${section.slug}/`,
+          "ar-OM": `${baseUrl}/ar/${section.slug}/`,
+          "x-default": `${baseUrl}/en/${section.slug}/`,
+        },
+      },
+    },
+  ]);
+
+  // 3. Dynamic Project / Property entries fetched from Supabase
   let projectEntries: MetadataRoute.Sitemap = [];
 
   try {
@@ -99,5 +136,5 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     console.warn("Sitemap: Supabase dynamic project fetch skipped or unavailable during build.", err);
   }
 
-  return [...coreRoutes, ...projectEntries];
+  return [...coreRoutes, ...sectionRoutes, ...projectEntries];
 }

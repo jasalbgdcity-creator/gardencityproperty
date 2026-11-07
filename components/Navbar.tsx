@@ -13,12 +13,11 @@ export default function Navbar() {
   const nav = dictionary.nav;
 
   const links = [
-    { href: `/${language}/#home`, label: nav.home },
-    { href: `/${language}/#about`, label: nav.about },
-    { href: `/${language}/#projects`, label: nav.projects },
-    { href: `/${language}/#services`, label: nav.services },
-    { href: `/${language}/#values`, label: language === "ar" ? "رؤيتنا" : "Why Us" },
-    { href: `/${language}/#contact`, label: nav.contact },
+    { href: `/${language}/`, label: nav.home },
+    { href: `/${language}/about/`, label: nav.about },
+    { href: `/${language}/projects/`, label: nav.projects },
+    { href: `/${language}/services/`, label: nav.services },
+    { href: `/${language}/contact/`, label: nav.contact },
   ];
 
   return (
@@ -53,7 +52,7 @@ export default function Navbar() {
           ))}
           <LanguageToggle language={language} onToggle={toggleLanguage} />
           <Link
-            href={`/${language}/#contact`}
+            href={`/${language}/contact/`}
             className="rounded-full bg-gradient-to-r from-sky-400 to-cyan-300 px-4 py-2 text-xs lg:px-5 lg:py-2.5 lg:text-sm font-semibold text-slate-950 shadow-[0_0_24px_rgba(56,189,248,0.35)] transition-all hover:shadow-[0_0_36px_rgba(56,189,248,0.55)] hover:-translate-y-0.5 active:translate-y-0 shrink-0"
           >
             {nav.getStarted}
@@ -90,7 +89,7 @@ export default function Navbar() {
             ))}
             <div className="mt-3">
               <Link
-                href={`/${language}/#contact`}
+                href={`/${language}/contact/`}
                 onClick={() => setIsOpen(false)}
                 className="block w-full rounded-full bg-gradient-to-r from-sky-400 to-cyan-300 px-4 py-2.5 text-center text-xs font-semibold text-slate-950 shadow-[0_0_20px_rgba(56,189,248,0.35)] transition hover:brightness-105"
               >

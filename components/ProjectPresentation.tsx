@@ -858,7 +858,7 @@ Client Note: ${message}`,
               {isAr ? "الرئيسية" : "Home"}
             </Link>
             <ChevronRight className="h-3 w-3 rtl:rotate-180 text-slate-500" />
-            <Link href={`/${locale}/#projects`} className="transition hover:text-sky-300">
+            <Link href={`/${locale}/projects/`} className="transition hover:text-sky-300">
               {isAr ? "المشاريع" : "Showcase"}
             </Link>
             <ChevronRight className="h-3 w-3 rtl:rotate-180 text-slate-500" />
@@ -2880,7 +2880,7 @@ Client Note: ${message}`,
                 </h2>
               </div>
               <Link
-                href={`/${locale}/#projects`}
+                href={`/${locale}/projects/`}
                 className="mt-3 md:mt-0 text-xs font-semibold text-sky-400 hover:text-sky-300 inline-flex items-center gap-1.5 transition"
               >
                 <span>{isAr ? "عرض جميع المشاريع" : "View All Developments"}</span>

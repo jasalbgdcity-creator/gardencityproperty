@@ -214,30 +214,59 @@ export default async function ProjectDetailPage({ params }: Props) {
     new Set([project.image, ...(project.gallery_urls || project.galleryUrls || [])].filter(Boolean))
   );
 
-  // Structured Data Schema for Real Estate Listing
+  // Structured Data Schema for Real Estate Listing & Breadcrumbs
   const jsonLd = {
     "@context": "https://schema.org",
-    "@type": "RealEstateListing",
-    name: project.name,
-    description: isAr
-      ? `مشروع ${project.name} في ${location}. من تطوير ${project.developer}. ابتداءً من ${project.price}.`
-      : `Prime property ${project.name} in ${location}. Developed by ${project.developer}. Starting from ${project.price}.`,
-    url: `${baseUrl}/${locale}/projects/${slug}/`,
-    image: gallery,
-    offers: {
-      "@type": "Offer",
-      price: String(project.price || "").replace(/[^0-9.]/g, "") || "45000",
-      priceCurrency: "OMR",
-      availability:
-        project.status === "Sold Out"
-          ? "https://schema.org/SoldOut"
-          : "https://schema.org/InStock",
-    },
-    address: {
-      "@type": "PostalAddress",
-      addressLocality: location,
-      addressCountry: "OM",
-    },
+    "@graph": [
+      {
+        "@type": "RealEstateListing",
+        "@id": `${baseUrl}/${locale}/projects/${slug}/#listing`,
+        name: project.name,
+        description: isAr
+          ? `مشروع ${project.name} في ${location}. من تطوير ${project.developer}. ابتداءً من ${project.price}.`
+          : `Prime property ${project.name} in ${location}. Developed by ${project.developer}. Starting from ${project.price}.`,
+        url: `${baseUrl}/${locale}/projects/${slug}/`,
+        image: gallery,
+        offers: {
+          "@type": "Offer",
+          price: String(project.price || "").replace(/[^0-9.]/g, "") || "45000",
+          priceCurrency: "OMR",
+          availability:
+            project.status === "Sold Out"
+              ? "https://schema.org/SoldOut"
+              : "https://schema.org/InStock",
+        },
+        address: {
+          "@type": "PostalAddress",
+          addressLocality: location,
+          addressCountry: "OM",
+        },
+      },
+      {
+        "@type": "BreadcrumbList",
+        "@id": `${baseUrl}/${locale}/projects/${slug}/#breadcrumbs`,
+        itemListElement: [
+          {
+            "@type": "ListItem",
+            position: 1,
+            name: isAr ? "الرئيسية" : "Home",
+            item: `${baseUrl}/${locale}/`,
+          },
+          {
+            "@type": "ListItem",
+            position: 2,
+            name: isAr ? "المشاريع" : "Projects",
+            item: `${baseUrl}/${locale}/projects/`,
+          },
+          {
+            "@type": "ListItem",
+            position: 3,
+            name: project.name,
+            item: `${baseUrl}/${locale}/projects/${slug}/`,
+          },
+        ],
+      },
+    ],
   };
 
   return (
