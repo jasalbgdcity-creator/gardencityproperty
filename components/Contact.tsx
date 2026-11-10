@@ -5,10 +5,12 @@ import { motion } from "framer-motion";
 import { Mail, MapPin, Phone } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
 import { getGeneralWhatsAppUrl } from "@/lib/whatsapp";
+import { COUNTRY_CODES } from "@/lib/countryCodes";
 
 export default function Contact() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [statusMessage, setStatusMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
+  const [countryCode, setCountryCode] = useState("+968");
   const { dictionary, language } = useLanguage();
   const isAr = language === "ar";
   const copy = dictionary.contact;
@@ -22,7 +24,9 @@ export default function Contact() {
     const formData = new FormData(form);
     const name = String(formData.get("name") || "").trim();
     const email = String(formData.get("email") || "").trim();
-    const phone = String(formData.get("phone") || "").trim();
+    const rawPhone = String(formData.get("phone") || "").trim();
+    const selectedCode = String(formData.get("country_code") || countryCode).trim();
+    const phone = rawPhone.startsWith("+") ? rawPhone : `${selectedCode} ${rawPhone}`;
     const message = String(formData.get("message") || "").trim();
 
     const accessKey =
@@ -109,13 +113,35 @@ export default function Contact() {
             </label>
             <label className="grid gap-2 text-sm text-slate-300">
               {copy.phone}
-              <input
-                required
-                type="tel"
-                name="phone"
-                className="rounded-xl border border-white/10 bg-slate-950/60 px-4 py-3 text-white outline-none transition focus:border-sky-400/50 focus:ring-4 focus:ring-sky-400/15"
-                placeholder="+968 0000 0000"
-              />
+              <div className="flex gap-2">
+                <div className="relative shrink-0">
+                  <select
+                    name="country_code"
+                    value={countryCode}
+                    onChange={(e) => setCountryCode(e.target.value)}
+                    aria-label={isAr ? "رمز الدولة" : "Country Dial Code"}
+                    className="h-full rounded-xl border border-white/10 bg-slate-950/80 px-2.5 sm:px-3 py-3 text-xs sm:text-sm text-white outline-none transition focus:border-sky-400/50 focus:ring-4 focus:ring-sky-400/15 cursor-pointer max-w-[125px] sm:max-w-[155px]"
+                  >
+                    {COUNTRY_CODES.map((c) => (
+                      <option
+                        key={`${c.code}-${c.dialCode}`}
+                        value={c.dialCode}
+                        className="bg-slate-900 text-white"
+                      >
+                        {c.flag} {c.dialCode} ({isAr ? c.nameAr : c.name})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <input
+                  required
+                  type="tel"
+                  name="phone"
+                  dir="ltr"
+                  className="flex-1 min-w-0 rounded-xl border border-white/10 bg-slate-950/60 px-4 py-3 text-white outline-none transition focus:border-sky-400/50 focus:ring-4 focus:ring-sky-400/15"
+                  placeholder={countryCode === "+968" ? "9123 4567" : "1234 5678"}
+                />
+              </div>
             </label>
             <label className="grid gap-2 text-sm text-slate-300">
               {copy.message}

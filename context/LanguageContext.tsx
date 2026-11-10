@@ -44,16 +44,16 @@ const dictionaries = {
         "Maximize asset value with disciplined, client-first execution.",
       leadershipEyebrow: "Management",
       leadershipTitle: "Leadership",
-      managingDirector: "Managing Director",
+      managingDirector: "Founder & Chairman",
       generalManager: "General Manager",
       leaders: [
         {
           src: "/MD.jpeg",
           name: "MOHAMED AL HARTHY",
-          title: "Managing Director",
+          title: "Founder & Chairman",
           bio: (
             <>
-              <p>The Founder and Managing Director of GARDEN CITY PROPERTIES Oman, I bring approximately 18 years of extensive professional experience in real estate brokerage, property management, asset valuation, and quantity surveying.</p>
+              <p>The Founder & Chairman of GARDEN CITY PROPERTIES Oman, I bring approximately 18 years of extensive professional experience in real estate brokerage, property management, asset valuation, and quantity surveying.</p>
               <p>Drawing on nearly two decades of industry expertise and an in-depth understanding of the Omani real estate market, I founded Garden City Properties with a vision to deliver comprehensive, innovative, and reliable real estate solutions. My focus is on identifying strategic investment opportunities, maximising property value, and providing tailored services that meet the needs of individuals, investors, businesses, and financial institutions.</p>
               <p>Driven by professionalism, integrity, and a commitment to excellence, I strive to build lasting client relationships and establish Garden City Properties as a trusted name in Oman&apos;s real estate sector, creating sustainable long-term value for our clients and partners.</p>
             </>
@@ -264,16 +264,16 @@ const dictionaries = {
       principle: "تعظيم قيمة الأصول بتنفيذ منضبط يضع العميل أولاً.",
       leadershipEyebrow: "الإدارة",
       leadershipTitle: "فريق القيادة",
-      managingDirector: "العضو المنتدب",
+      managingDirector: "المؤسس ورئيس مجلس الإدارة",
       generalManager: "المدير العام",
       leaders: [
         {
           src: "/MD.jpeg",
           name: "الفاضل محمد الحارثي",
-          title: "العضو المنتدب",
+          title: "المؤسس ورئيس مجلس الإدارة",
           bio: (
             <>
-              <p>بصفتي العضو المنتدب ومؤسس شركة جاردن سيتي بروبرتيز عمان، أقدم خبرة واسعة في الوساطة العقارية، وإدارة العقارات، وتقييم الأصول، ومسح الكميات تمتد لنحو 18 عاماً.</p>
+              <p>بصفتي المؤسس ورئيس مجلس إدارة شركة جاردن سيتي بروبرتيز عمان، أقدم خبرة واسعة في الوساطة العقارية، وإدارة العقارات، وتقييم الأصول، ومسح الكميات تمتد لنحو 18 عاماً.</p>
               <p>وبفضل الرؤية الاستراتيجية والفهم العميق لسوق العقارات العماني، أسست الشركة بهدف تقديم حلول عقارية شاملة ومبتكرة وموثوقة، مع التركيز على اقتناص الفرص الاستثمارية الواعدة وتعظيم قيمة الأصول وتقديم خدمات مخصصة تلبي متطلبات الأفراد والمستثمرين والشركات والمؤسسات المالية.</p>
               <p>إن التزامي الراسخ بالمهنية والنزاهة والتميز يدفعني لبناء شراكات وثيقة ومستدامة، وترسيخ اسم جاردن سيتي بروبرتيز كشريك عقاري موثوق في سلطنة عمان يحقق قيمة حقيقية وطويلة الأجل.</p>
             </>

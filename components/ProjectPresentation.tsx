@@ -59,6 +59,19 @@ import {
 import { renderAmenityIcon, renderMilestoneIcon } from "@/lib/projectIcons";
 import AnimatedCounter from "@/components/AnimatedCounter";
 import { toDirectDriveImageUrl, isGoogleDriveUrl } from "@/lib/projects";
+import {
+  hasArabicText,
+  localizeToArabic,
+  localizeField,
+  localizeDeveloper,
+  localizeProjectName,
+  localizePropertyType,
+  localizeStatus,
+  localizePaymentPlan,
+  localizeConstructionStage,
+  localizeLocation,
+} from "@/lib/localization";
+import { COUNTRY_CODES } from "@/lib/countryCodes";
 
 export interface PropertyConfiguration {
   id?: string;
@@ -221,273 +234,6 @@ interface ProjectPresentationProps {
   locale: string;
 }
 
-// =========================================================================
-// FRONTEND ARABIC LOCALIZATION DICTIONARY & ROBUST FORMATTERS
-// Standard project labels, stages, statuses, and badges are cleanly mapped
-// to formal Arabic without altering database schemas or columns.
-// =========================================================================
-
-const ARABIC_DICTIONARY: Record<string, string> = {
-  // Statuses & Badges
-  "exclusive pre-launch": "متاح للحجز الحصري",
-  "pre-launch": "مرحلة ما قبل الإطلاق",
-  "new launch": "إطلاق جديد",
-  "exclusive": "حصري",
-  "available": "متاح للحجز",
-  "off-plan": "على الخارطة",
-  "off plan": "على الخارطة",
-  "under construction": "قيد الإنشاء",
-  "ready to move": "جاهز للسكن الفوري",
-  "ready to handover": "جاهز للتسليم",
-  "ready": "جاهز للتسليم",
-  "immediate": "تسليم فوري",
-  "sold out": "تم بيع جميع الوحدات",
-  "sold": "تم البيع",
-  "reserved": "محجوز",
-  "limited availability": "وحدات محدودة متبقية",
-  "limited units": "وحدات محدودة",
-  "under offer": "قيد التفاوض",
-  "featured": "نموذج مميز",
-  "coming soon": "قريباً",
-  "in stock": "متاح للحجز",
-
-  // Construction Stages
-  "active construction": "أعمال الأساسات والإنشاءات",
-  "structure complete": "الهيكل الإنشائي مكتمل",
-  "ground work": "أعمال الحفر والأساسات",
-  "substructure": "أعمال الأساسات",
-  "superstructure": "أعمال الهيكل الخارجي",
-  "finishing": "مرحلة التشطيبات النهائية",
-  "finishing works": "أعمال التشطيبات والديكور",
-  "handover phase": "مرحلة التسليم النهائي",
-  "completed": "مكتمل وجاهز للتسليم",
-
-  // Property & Unit Types
-  "master-planned residential & mixed-use": "مشروع سكني واستثماري متكامل",
-  "residential & mixed-use": "مشروع سكني ومتعدد الاستخدامات",
-  "luxury residential": "مجمع سكني فاخر",
-  "residential": "سكني",
-  "commercial": "تجاري",
-  "mixed-use": "متعدد الاستخدامات",
-  "mixed use": "متعدد الاستخدامات",
-  "retail": "محلات تجارية",
-  "office": "مكاتب إدارية",
-  "hospitality": "ضيافة وفندقة",
-  "apartment": "شقة سكنية",
-  "apartments": "شقق سكنية",
-  "villa": "فيلا مستقلة",
-  "villas": "فلل مستقلة",
-  "townhouse": "تاون هاوس",
-  "townhouses": "منازل تاون هاوس",
-  "penthouse": "بنتهاوس فاخر",
-  "penthouses": "شقق بنتهاوس",
-  "duplex": "شقة دوبلكس",
-  "duplexes": "شقق دوبلكس",
-  "studio": "استوديو عصري",
-  "studios": "استوديوهات عصرية",
-  "luxury villa": "فيلا فاخرة",
-  "sea view residence": "وحدة بإطلالة بحرية",
-  "beachfront villa": "فيلا شاطئية مباشرة",
-  "1-bedroom": "غرفة وصالة",
-  "2-bedroom": "غرفتين وصالة",
-  "3-bedroom": "3 غرف وصالة",
-  "4-bedroom": "4 غرف وصالة",
-  "5-bedroom": "5 غرف وصالة",
-  "1-bedroom executive residence": "شقة تنفيذية غرفة وصالة فاخرة",
-  "2-bedroom premium suite": "شقة فندقية فاخرة غرفتين وصالة",
-  "3-bedroom sky villa": "سكاي فيلا بانورامية 3 غرف وصالة",
-  "4-bedroom grand duplex": "دوبلكس ملكي فسيح 4 غرف وصالة",
-
-  // Payment Plans
-  "20% down / 80% milestone linked": "20% مقدم / 80% على مراحل الإنجاز",
-  "20% down / 80% on handover": "20% مقدم / 80% عند الاستلام",
-  "10% down / 90% milestone linked": "10% مقدم / 90% على مراحل الإنجاز",
-  "10% down / 90% on handover": "10% مقدم / 90% عند الاستلام",
-  "flexible payment plan": "خطة سداد مرنة وميسرة",
-  "flexible": "خطة سداد مرنة",
-  "3 years payment plan": "خطة سداد على 3 سنوات",
-  "4 years payment plan": "خطة سداد على 4 سنوات",
-  "5 years payment plan": "خطة سداد على 5 سنوات",
-  "post-handover": "سداد ممتد لما بعد الاستلام",
-  "post handover": "سداد ممتد لما بعد الاستلام",
-  "post-handover payment plan": "خطة سداد ممتدة لما بعد الاستلام",
-  "milestone linked": "أقساط مرتبطة بمراحل الإنجاز",
-  "cash or mortgage": "نقداً أو عبر التمويل البنكي",
-  "bank mortgage eligible": "مؤهل للتمويل البنكي",
-  "20/80": "20% مقدم / 80% على مراحل البناء",
-  "30/70": "30% مقدم / 70% على مراحل البناء",
-  "40/60": "40% مقدم / 60% عند الاستلام",
-  "50/50": "50% أثناء البناء / 50% عند الاستلام",
-  "10/90": "10% مقدم / 90% عند الاستلام",
-
-  // Structures & Finishes
-  "contemporary luxury architectural finishes": "تشطيبات عصرية بمعايير عالمية فاخرة",
-  "luxury finishes": "تشطيبات فاخرة فائقة الجودة",
-  "modern luxury": "فخامة عصرية متكاملة",
-  "fully furnished": "مفروش بالكامل بأثاث راقٍ",
-  "semi-furnished": "مفروش جزئياً مع أجهزة المطبخ",
-  "semi furnished": "مفروش جزئياً",
-  "unfurnished": "غير مفروش (تشطيب كامل)",
-  "shell & core": "على العظم والتجهيزات الأساسية",
-  "fitted kitchen & wardrobes": "مطبخ مجهز بالكامل وخزائن مدمجة",
-
-  // Common Oman Locations
-  "muscat": "مسقط",
-  "muscat, oman": "مسقط، سلطنة عمان",
-  "muscat, sultanate of oman": "مسقط، سلطنة عمان",
-  "al mouj": "الموج، مسقط",
-  "al mouj muscat": "الموج مسقط",
-  "al mouj, muscat": "الموج مسقط",
-  "al mouj, oman": "الموج، سلطنة عمان",
-  "mawelah": "الموالح، مسقط",
-  "mawelah north": "الموالح الشمالية، مسقط",
-  "al mawaleh": "الموالح",
-  "al mawaleh north": "الموالح الشمالية",
-  "azaiba": "العذيبة، مسقط",
-  "al azaiba": "العذيبة",
-  "al azaiba, muscat": "العذيبة، مسقط",
-  "al khuwair": "الخوير، مسقط",
-  "al khuwair, muscat": "الخوير، مسقط",
-  "qurum": "القرم، مسقط",
-  "shatti al qurum": "شاطئ القرم، مسقط",
-  "madinat al sultan qaboos": "مدينة السلطان قابوس",
-  "bausher": "بوشر، مسقط",
-  "bousher": "بوشر، مسقط",
-  "ruwi": "روي، مسقط",
-  "seeb": "السيب، مسقط",
-  "al seeb": "السيب، مسقط",
-  "al hail": "الحيل، مسقط",
-  "al hail north": "الحيل الشمالية",
-  "al hail south": "الحيل الجنوبية",
-  "jebel sifah": "جبل سيفة",
-  "muscat bay": "خليج مسقط",
-  "salalah": "صلالة",
-  "sohar": "صحار",
-  "barkha": "بركاء",
-  "barka": "بركاء",
-  "duqm": "الدقم",
-
-  // Parking & Furnishing specs
-  "1 dedicated bay": "موقف سيارة مخصص واحد",
-  "2 covered spaces": "موقفان مغطيان للسيارات",
-  "1 parking space": "موقف سيارة واحد",
-  "2 parking spaces": "موقفان للسيارات",
-  "basement parking": "مواقف سفلية آمنة",
-  "covered parking": "موقف مغطى",
-
-  // Pricing & Area phrases
-  "price on application": "السعر عند الطلب",
-  "on application": "عند الطلب",
-  "on request": "عند الطلب",
-
-  // Categories
-  "heritage": "تراث وثقافة",
-  "lifestyle": "أسلوب حياة وترفيه",
-  "education": "تعليم ومدارس",
-  "transport": "مواصلات ومطارات",
-  "healthcare": "رعاية صحية",
-  "beach": "شواطئ وبحر",
-
-  // Amenities
-  "swimming pool": "حوض سباحة بإطلالة بانورامية",
-  "infinity pool": "حوض سباحة لا متناهي",
-  "fitness center": "مركز لياقة بدنية مجهز بالكامل",
-  "gym": "صالة رياضية متطورة",
-  "state-of-the-art gym": "صالة رياضية متكاملة بأحدث الأجهزة",
-  "landscaped gardens": "حدائق ومساحات خضراء منسقة",
-  "botanical gardens": "حدائق نباتية ومسارات للمشي",
-  "24/7 security": "حراسة أمنية وأنظمة مراقبة 24/7",
-  "security": "أمن وحراسة مدار الساعة",
-  "kids play area": "منطقة ألعاب آمنة للأطفال",
-  "children play area": "منطقة ألعاب آمنة للأطفال",
-  "retail promenade": "ممشى تجاري ومقاهٍ ومطاعم راقية",
-  "cafes & restaurants": "مقاهٍ ومطاعم متنوعة",
-  "bbq area": "منطقة شواء وجلسات خارجية",
-  "concierge service": "خدمات استقبال واستعلامات فندقية",
-  "concierge": "خدمة استقبال فندقية",
-  "spa & wellness": "سبا ونادي صحي متكامل",
-  "private beach access": "شاطئ خاص للملاك",
-  "rooftop lounge": "صالة واستراحة علوية بإطلالة بانورامية",
-  "running track": "مسار مخصص للجري والمشي",
-
-  // Landmarks
-  "muscat international airport": "مطار مسقط الدولي",
-  "sultan qaboos grand mosque": "جامع السلطان قابوس الأكبر",
-  "qurum beach & royal opera house": "شاطئ القرم ودار الأوبرا السلطانية",
-  "royal opera house": "دار الأوبرا السلطانية مسقط",
-  "mall of oman": "مول عمان",
-  "city centre muscat": "سيتي سنتر مسقط",
-  "muscat city centre": "سيتي سنتر مسقط",
-  "al mouj marina": "مرسى الموج مسقط",
-  "al mouj golf": "ملعب الموج للجولف",
-  "leading international schools & clinics": "أبرز المدارس الدولية والمراكز الطبية",
-  "sultan qaboos university": "جامعة السلطان قابوس",
-};
-
-function hasArabicText(text?: string | null): boolean {
-  if (!text) return false;
-  return /[\u0600-\u06FF]/.test(text);
-}
-
-function localizeToArabic(val?: string | null, fallback?: string): string {
-  if (!val) return fallback || "";
-  const trimmed = val.trim();
-  if (!trimmed) return fallback || "";
-  if (hasArabicText(trimmed)) return trimmed;
-
-  const lower = trimmed.toLowerCase();
-  if (ARABIC_DICTIONARY[lower]) {
-    return ARABIC_DICTIONARY[lower];
-  }
-
-  // Quarters date matcher (e.g., "Q4 2026", "Q1 2025")
-  const quarterMatch = trimmed.match(/^Q([1-4])\s*(\d{4})$/i);
-  if (quarterMatch) {
-    const qNum = quarterMatch[1];
-    const year = quarterMatch[2];
-    const qWords: Record<string, string> = {
-      "1": "الأول",
-      "2": "الثاني",
-      "3": "الثالث",
-      "4": "الرابع",
-    };
-    return `الربع ${qWords[qNum] || qNum} ${year}`;
-  }
-
-  // Year only (e.g. "2026")
-  if (/^\d{4}$/.test(trimmed)) {
-    return trimmed;
-  }
-
-  // Travel time matcher (e.g., "12 Mins", "5 - 8 Mins", "15 minutes")
-  if (/mins?|minutes?/i.test(trimmed)) {
-    return trimmed
-      .replace(/mins?/gi, "دقيقة")
-      .replace(/minutes?/gi, "دقيقة")
-      .replace(/hours?/gi, "ساعة");
-  }
-
-  // Currency / Price formatting (e.g. "Starting from OMR 45,000" or "45,000 OMR")
-  if (/omr|starting from|from/i.test(trimmed)) {
-    const replaced = trimmed
-      .replace(/starting from/gi, "ابتداءً من")
-      .replace(/from/gi, "ابتداءً من")
-      .replace(/omr/gi, "ر.ع.");
-    return replaced;
-  }
-
-  // Area formatting (e.g. "From 85 m²", "85 sqm")
-  if (/sqm|sq m|m²|m2|sq ft/i.test(trimmed)) {
-    const replaced = trimmed
-      .replace(/from/gi, "تبدأ من")
-      .replace(/sqm|sq m|m2/gi, "م²")
-      .replace(/sq ft/gi, "قدم²");
-    return replaced;
-  }
-
-  return fallback || trimmed;
-}
-
 function WhatsAppIcon({ className = "h-5 w-5" }: { className?: string }) {
   return (
     <svg viewBox="0 0 24 24" aria-hidden="true" className={className} fill="currentColor">
@@ -506,57 +252,39 @@ export default function ProjectPresentation({
   const copy = dictionary.projects;
 
   // Unified specs & safe fallbacks with bilingual resolution and dictionary mapping
-  const title = (isAr && (project.name_ar || project.nameAr))
-    ? (project.name_ar || project.nameAr)!
-    : isAr
-    ? localizeToArabic(project.name, project.name)
-    : project.name;
+  const title = localizeProjectName(project.name, project.name_ar || project.nameAr, locale);
 
-  const developer = (isAr && project.developer_ar)
-    ? project.developer_ar
-    : project.developer || (isAr ? "مطور عقاري رائد" : "Premier Master Developer");
+  const developer = localizeDeveloper(project.developer, project.developer_ar, locale);
 
   const price = isAr
     ? (project.price ? localizeToArabic(project.price, "السعر عند الطلب") : "السعر عند الطلب")
     : project.price || "Price on Application";
 
-  const paymentPlan = (isAr && project.payment_plan_ar)
-    ? project.payment_plan_ar
-    : isAr
-    ? localizeToArabic(project.payment_plan || project.paymentPlan, "20% مقدم / 80% على مراحل الإنجاز")
-    : project.payment_plan || project.paymentPlan || "20% Down / 80% Milestone Linked";
+  const paymentPlan = localizePaymentPlan(
+    project.payment_plan || project.paymentPlan,
+    project.payment_plan_ar,
+    locale
+  );
 
   const area = isAr
     ? (project.area ? localizeToArabic(project.area, "تبدأ من 85 م²") : "تبدأ من 85 م²")
     : project.area || "From 85 m²";
 
-  const location = (isAr && project.location_ar)
-    ? project.location_ar
-    : isAr
-    ? localizeToArabic(project.location, "مسقط، سلطنة عمان")
-    : project.location || "Muscat, Sultanate of Oman";
+  const location = localizeLocation(project.location, project.location_ar, locale);
 
   const completionDate = isAr
     ? localizeToArabic(project.completion_date || project.completionDate, "الربع الرابع 2026")
     : project.completion_date || project.completionDate || "Q4 2026";
 
-  const constructionStage = (isAr && project.construction_stage_ar)
-    ? project.construction_stage_ar
-    : isAr
-    ? localizeToArabic(project.construction_stage || project.constructionStage, "أعمال الأساسات والإنشاءات")
-    : project.construction_stage || project.constructionStage || "Active Construction";
+  const constructionStage = localizeConstructionStage(
+    project.construction_stage || project.constructionStage,
+    project.construction_stage_ar,
+    locale
+  );
 
-  const status = (isAr && project.status_ar)
-    ? project.status_ar
-    : isAr
-    ? localizeToArabic(project.status, "متاح للحجز الحصري")
-    : project.status || "Exclusive Pre-Launch";
+  const status = localizeStatus(project.status, project.status_ar, locale);
 
-  const type = (isAr && project.type_ar)
-    ? project.type_ar
-    : isAr
-    ? localizeToArabic(project.type || project.property_type, "مشروع سكني واستثماري متكامل")
-    : project.type || project.property_type || "Master-Planned Residential & Mixed-Use";
+  const type = localizePropertyType(project.type || project.property_type, project.type_ar, locale);
 
   const structure = (isAr && project.structure_ar)
     ? project.structure_ar
@@ -809,6 +537,7 @@ export default function ProjectPresentation({
   const [formStatus, setFormStatus] = useState<{ type: "success" | "error"; text: string } | null>(
     null
   );
+  const [inquiryCountryCode, setInquiryCountryCode] = useState("+968");
 
   // Brochure modal / feedback
   const [brochureRequested, setBrochureRequested] = useState(false);
@@ -873,7 +602,9 @@ export default function ProjectPresentation({
     const formData = new FormData(form);
     const clientName = String(formData.get("name") || "").trim();
     const clientEmail = String(formData.get("email") || "").trim();
-    const clientPhone = String(formData.get("phone") || "").trim();
+    const rawClientPhone = String(formData.get("phone") || "").trim();
+    const selectedCountryCode = String(formData.get("country_code") || inquiryCountryCode).trim();
+    const clientPhone = rawClientPhone.startsWith("+") ? rawClientPhone : `${selectedCountryCode} ${rawClientPhone}`;
     const preferredMethod = String(formData.get("preferred_method") || "WhatsApp").trim();
     const message = String(formData.get("message") || "").trim();
 
@@ -1171,7 +902,7 @@ Client Note: ${message}`,
               sizes="100vw"
               className="object-cover object-center"
               fallbackLabel={title}
-              fallbackSublabel={project.developer}
+              fallbackSublabel={developer}
             />
           </motion.div>
           {/* Multi-layered cinematic gradient overlays */}
@@ -3482,13 +3213,33 @@ Client Note: ${message}`,
 
                   <label className="block text-xs font-medium text-slate-300">
                     {isAr ? "رقم الهاتف / واتساب" : "Phone / WhatsApp Number"} *
-                    <input
-                      required
-                      type="tel"
-                      name="phone"
-                      placeholder="+968 0000 0000"
-                      className="mt-1.5 w-full rounded-xl border border-white/10 bg-slate-950/70 px-4 py-3 text-xs sm:text-sm text-white outline-none focus:border-sky-400/50 focus:ring-2 focus:ring-sky-400/10"
-                    />
+                    <div className="mt-1.5 flex gap-2">
+                      <select
+                        name="country_code"
+                        value={inquiryCountryCode}
+                        onChange={(e) => setInquiryCountryCode(e.target.value)}
+                        aria-label={isAr ? "رمز الدولة" : "Country Dial Code"}
+                        className="shrink-0 rounded-xl border border-white/10 bg-slate-950/80 px-2 sm:px-3 py-3 text-xs sm:text-sm text-white outline-none focus:border-sky-400/50 focus:ring-2 focus:ring-sky-400/10 cursor-pointer max-w-[115px] sm:max-w-[150px]"
+                      >
+                        {COUNTRY_CODES.map((c) => (
+                          <option
+                            key={`${c.code}-${c.dialCode}`}
+                            value={c.dialCode}
+                            className="bg-slate-900 text-white"
+                          >
+                            {c.flag} {c.dialCode} ({isAr ? c.nameAr : c.name})
+                          </option>
+                        ))}
+                      </select>
+                      <input
+                        required
+                        type="tel"
+                        name="phone"
+                        dir="ltr"
+                        placeholder={inquiryCountryCode === "+968" ? "9123 4567" : "1234 5678"}
+                        className="flex-1 min-w-0 rounded-xl border border-white/10 bg-slate-950/70 px-4 py-3 text-xs sm:text-sm text-white outline-none focus:border-sky-400/50 focus:ring-2 focus:ring-sky-400/10"
+                      />
+                    </div>
                   </label>
                 </div>
 
@@ -3658,7 +3409,7 @@ Client Note: ${message}`,
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent" />
                     <span className="absolute bottom-3 left-3 right-3 text-xs font-semibold text-amber-400">
-                      {isAr && rel.price ? localizeToArabic(rel.price, rel.price) : rel.price}
+                      {localizeField(rel.price, locale, rel.price)}
                     </span>
                   </div>
 
@@ -3666,23 +3417,17 @@ Client Note: ${message}`,
                     <div>
                       <h3
                         className="font-[family-name:var(--font-outfit)] rtl:font-[family-name:var(--font-cairo)] text-lg font-bold text-white line-clamp-1"
-                        dir={isAr && !hasArabicText(rel.name_ar || rel.nameAr || rel.name) ? "ltr" : undefined}
+                        dir={isAr && !hasArabicText(localizeProjectName(rel.name, rel.name_ar || rel.nameAr, locale)) ? "ltr" : undefined}
                       >
-                        {isAr
-                          ? rel.name_ar ||
-                            rel.nameAr ||
-                            (hasArabicText(rel.name) ? rel.name : localizeToArabic(rel.name, rel.name))
-                          : rel.name}
+                        {localizeProjectName(rel.name, rel.name_ar || rel.nameAr, locale)}
                       </h3>
                       <p className="mt-1 text-xs text-slate-400 flex items-center gap-1.5">
                         <Building2 className="h-3.5 w-3.5 text-sky-400 shrink-0" />
                         <span
-                          dir={hasArabicText(rel.developer_ar || rel.developer) ? "rtl" : "ltr"}
+                          dir={hasArabicText(localizeDeveloper(rel.developer, rel.developer_ar, locale)) ? "rtl" : "ltr"}
                           className="[unicode-bidi:isolate]"
                         >
-                          {isAr
-                            ? rel.developer_ar || rel.developer || "مطور عقاري رائد"
-                            : rel.developer || "Premier Master Developer"}
+                          {localizeDeveloper(rel.developer, rel.developer_ar, locale)}
                         </span>
                       </p>
                     </div>
@@ -3699,10 +3444,12 @@ Client Note: ${message}`,
 
                       <a
                         href={getProjectWhatsAppUrl({
-                          projectName: rel.name,
-                          startingPrice: rel.price,
+                          projectName: localizeProjectName(rel.name, rel.name_ar || rel.nameAr, locale),
+                          location: localizeLocation(rel.location, rel.location_ar, locale),
+                          price: localizeField(rel.price, locale, rel.price),
+                          developer: localizeDeveloper(rel.developer, rel.developer_ar, locale),
                           whatsapp_number: rel.whatsapp_number,
-                          language: isAr ? "ar" : "en",
+                          locale: isAr ? "ar" : "en",
                         })}
                         target="_blank"
                         rel="noopener noreferrer"

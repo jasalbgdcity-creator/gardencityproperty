@@ -62,14 +62,14 @@ const CONSULTANTS: Consultant[] = [
     whatsappUrl: "https://wa.me/96897300200",
   },
   {
-    name: "[Consultant Name]",
-    nameAr: "[اسم المستشار]",
-    role: "Property Consultant",
-    roleAr: "مستشار عقاري",
+    name: "Rana Al Harthi",
+    nameAr: "رنا الحارثي",
+    role: "Sales Executive",
+    roleAr: "تنفيذية مبيعات",
     phone: "+968 97300200",
     email: "info@gardencityproperties.net",
-    image: "/Logo.jpeg",
-    isPlaceholder: true,
+    image: "/Rana al harthi.jpeg",
+    whatsappUrl: "https://wa.me/qr/H43WNRPSMI32B1",
   },
 ];
 

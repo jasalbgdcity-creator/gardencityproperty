@@ -21,24 +21,45 @@ import {
 import { useLanguage } from "@/context/LanguageContext";
 import { supabase } from "@/lib/supabase";
 import { getProjectWhatsAppUrl } from "@/lib/whatsapp";
+import {
+  localizeField,
+  localizeToArabic,
+  localizeDeveloper,
+  localizeProjectName,
+  localizePropertyType,
+  localizeStatus,
+  localizePaymentPlan,
+  localizeConstructionStage,
+  localizeLocation,
+  hasArabicText,
+} from "@/lib/localization";
 
 interface Project {
   id: string;
   name: string;
+  name_ar?: string;
   price: string;
   paymentPlan: string;
+  payment_plan_ar?: string;
   area: string;
   developer: string;
+  developer_ar?: string;
   image: string;
   gallery_urls?: string[];
   floor_plan_url?: string;
   location?: string;
+  location_ar?: string;
   completion_date?: string;
   construction_stage?: string;
+  construction_stage_ar?: string;
   status?: string;
+  status_ar?: string;
   type?: string;
+  type_ar?: string;
   structure?: string;
+  structure_ar?: string;
   description?: string;
+  description_ar?: string;
   whatsapp_number?: string;
 }
 
@@ -138,10 +159,13 @@ export default function ProjectsShowcase() {
           const mapped: Project[] = data.map((row: Record<string, unknown>) => ({
             id: String(row.id || ""),
             name: String(row.name || ""),
+            name_ar: typeof row.name_ar === "string" ? row.name_ar : typeof row.nameAr === "string" ? row.nameAr : undefined,
             price: String(row.price || ""),
             paymentPlan: String(row.payment_plan || row.paymentPlan || ""),
+            payment_plan_ar: typeof row.payment_plan_ar === "string" ? row.payment_plan_ar : undefined,
             area: String(row.area || row.site_area || ""),
             developer: String(row.developer || ""),
+            developer_ar: typeof row.developer_ar === "string" ? row.developer_ar : undefined,
             image: String(row.image || ""),
             gallery_urls: Array.isArray(row.gallery_urls)
               ? (row.gallery_urls as string[])
@@ -156,12 +180,18 @@ export default function ProjectsShowcase() {
               (typeof row.floorplan === "string" && row.floorplan.trim()) ||
               undefined,
             location: typeof row.location === "string" ? row.location : undefined,
+            location_ar: typeof row.location_ar === "string" ? row.location_ar : undefined,
             completion_date: typeof row.completion_date === "string" ? row.completion_date : undefined,
             construction_stage: typeof row.construction_stage === "string" ? row.construction_stage : undefined,
+            construction_stage_ar: typeof row.construction_stage_ar === "string" ? row.construction_stage_ar : undefined,
             status: typeof row.status === "string" ? row.status : undefined,
+            status_ar: typeof row.status_ar === "string" ? row.status_ar : undefined,
             type: typeof row.type === "string" ? row.type : typeof row.property_type === "string" ? row.property_type : undefined,
+            type_ar: typeof row.type_ar === "string" ? row.type_ar : undefined,
             structure: typeof row.structure === "string" ? row.structure : undefined,
+            structure_ar: typeof row.structure_ar === "string" ? row.structure_ar : undefined,
             description: row.description ? String(row.description) : undefined,
+            description_ar: typeof row.description_ar === "string" ? row.description_ar : undefined,
             whatsapp_number:
               typeof row.whatsapp_number === "string" && row.whatsapp_number.trim()
                 ? row.whatsapp_number.trim()
@@ -205,10 +235,13 @@ export default function ProjectsShowcase() {
         const mapped: Project[] = data.map((row: Record<string, unknown>) => ({
           id: String(row.id || ""),
           name: String(row.name || ""),
+          name_ar: typeof row.name_ar === "string" ? row.name_ar : typeof row.nameAr === "string" ? row.nameAr : undefined,
           price: String(row.price || ""),
           paymentPlan: String(row.payment_plan || row.paymentPlan || ""),
+          payment_plan_ar: typeof row.payment_plan_ar === "string" ? row.payment_plan_ar : undefined,
           area: String(row.area || row.site_area || ""),
           developer: String(row.developer || ""),
+          developer_ar: typeof row.developer_ar === "string" ? row.developer_ar : undefined,
           image: String(row.image || ""),
           gallery_urls: Array.isArray(row.gallery_urls)
             ? (row.gallery_urls as string[])
@@ -223,12 +256,18 @@ export default function ProjectsShowcase() {
             (typeof row.floorplan === "string" && row.floorplan.trim()) ||
             undefined,
           location: typeof row.location === "string" ? row.location : undefined,
+          location_ar: typeof row.location_ar === "string" ? row.location_ar : undefined,
           completion_date: typeof row.completion_date === "string" ? row.completion_date : undefined,
           construction_stage: typeof row.construction_stage === "string" ? row.construction_stage : undefined,
+          construction_stage_ar: typeof row.construction_stage_ar === "string" ? row.construction_stage_ar : undefined,
           status: typeof row.status === "string" ? row.status : undefined,
+          status_ar: typeof row.status_ar === "string" ? row.status_ar : undefined,
           type: typeof row.type === "string" ? row.type : typeof row.property_type === "string" ? row.property_type : undefined,
+          type_ar: typeof row.type_ar === "string" ? row.type_ar : undefined,
           structure: typeof row.structure === "string" ? row.structure : undefined,
+          structure_ar: typeof row.structure_ar === "string" ? row.structure_ar : undefined,
           description: row.description ? String(row.description) : undefined,
+          description_ar: typeof row.description_ar === "string" ? row.description_ar : undefined,
           whatsapp_number:
             typeof row.whatsapp_number === "string" && row.whatsapp_number.trim()
               ? row.whatsapp_number.trim()
@@ -338,11 +377,18 @@ export default function ProjectsShowcase() {
         {!isLoading && !error && projects.length > 0 && (
           <div className="mt-12 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
             {projects.map((project, index) => {
+              const localizedProjectName = localizeProjectName(project.name, project.name_ar, language);
+              const localizedDeveloper = localizeDeveloper(project.developer, project.developer_ar, language);
+              const localizedPrice = language === "ar" ? localizeToArabic(project.price, project.price) : project.price;
+              const localizedPaymentPlan = localizePaymentPlan(project.paymentPlan, project.payment_plan_ar, language);
+              const localizedArea = language === "ar" ? localizeToArabic(project.area, project.area) : project.area;
+              const localizedLocation = localizeLocation(project.location, project.location_ar, language);
+
               const whatsappUrl = getProjectWhatsAppUrl({
-                projectName: project.name,
-                location: project.location,
-                price: project.price,
-                developer: project.developer,
+                projectName: localizedProjectName,
+                location: localizedLocation,
+                price: localizedPrice,
+                developer: localizedDeveloper,
                 whatsapp_number: project.whatsapp_number,
                 locale: language === "ar" ? "ar" : "en",
               });
@@ -364,12 +410,12 @@ export default function ProjectsShowcase() {
                   <div className="relative h-[230px] w-full overflow-hidden bg-slate-900">
                     <PropertyImage
                       src={project.image}
-                      alt={`${project.name} - Luxury Property in Oman developed by ${project.developer}`}
+                      alt={`${localizedProjectName} - Luxury Property in Oman developed by ${localizedDeveloper}`}
                       fill
                       sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
                       quality={85}
-                      fallbackLabel={project.name}
-                      fallbackSublabel={project.developer}
+                      fallbackLabel={localizedProjectName}
+                      fallbackSublabel={localizedDeveloper}
                       className="object-cover transition-transform duration-700 ease-out group-hover:scale-105"
                     />
                     <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-slate-900/60 via-transparent to-transparent opacity-60" />
@@ -379,12 +425,12 @@ export default function ProjectsShowcase() {
                   <div className="flex flex-1 flex-col p-5">
                     {/* Project Title (Gold/Amber) */}
                     <h3 className="font-serif text-lg font-medium text-amber-500 line-clamp-1 tracking-tight rtl:font-[family-name:var(--font-cairo)] rtl:tracking-normal rtl:font-bold">
-                      {project.name}
+                      {localizedProjectName}
                     </h3>
 
                     {/* Price (White, bold) */}
                     <p className="mt-1 text-2xl font-bold tracking-tight text-white">
-                      {project.price}
+                      {localizedPrice}
                     </p>
 
                     {/* Details List */}
@@ -394,7 +440,7 @@ export default function ProjectsShowcase() {
                         <span className="truncate">
                           <span>{copy.paymentPlan}: </span>
                           <span className="font-medium text-slate-300">
-                            {project.paymentPlan}
+                            {localizedPaymentPlan}
                           </span>
                         </span>
                       </li>
@@ -403,7 +449,7 @@ export default function ProjectsShowcase() {
                         <span className="truncate">
                           <span>{copy.startingArea}: </span>
                           <span className="font-medium text-slate-300">
-                            {project.area}
+                            {localizedArea}
                           </span>
                         </span>
                       </li>
@@ -412,7 +458,7 @@ export default function ProjectsShowcase() {
                         <span className="truncate">
                           <span>{copy.developer}: </span>
                           <span className="font-medium text-slate-300">
-                            {project.developer}
+                            {localizedDeveloper}
                           </span>
                         </span>
                       </li>
@@ -428,7 +474,7 @@ export default function ProjectsShowcase() {
                         }}
                         onMouseEnter={() => router.prefetch(`/${language}/projects/${project.id}/`)}
                         onFocus={() => router.prefetch(`/${language}/projects/${project.id}/`)}
-                        className="inline-flex h-10 flex-1 items-center justify-center rounded-lg bg-white px-4 text-xs font-semibold text-slate-950 shadow-sm transition hover:bg-slate-200 active:scale-[0.99]"
+                        className="inline-flex h-10 flex-1 items-center justify-center rounded-lg bg-white px-4 text-xs font-semibold text-slate-950 shadow-sm transition hover:bg-slate-200 active:scale-[0.99] cursor-pointer"
                       >
                         {copy.getDetails}
                       </button>
@@ -436,7 +482,7 @@ export default function ProjectsShowcase() {
                         href={whatsappUrl}
                         target="_blank"
                         rel="noopener noreferrer"
-                        aria-label={`${copy.whatsapp}: ${project.name}`}
+                        aria-label={`${copy.whatsapp}: ${localizedProjectName}`}
                         className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-white text-slate-950 shadow-sm transition hover:bg-slate-200 active:scale-[0.99]"
                       >
                         <WhatsAppIcon className="h-5 w-5" />
@@ -450,343 +496,368 @@ export default function ProjectsShowcase() {
         )}
 
       {/* Quick View Bento-Box Modal */}
-      {selectedProject && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md p-3 sm:p-4 md:p-6"
-          onClick={() => setSelectedProject(null)}
-        >
-          <div
-            className="bg-slate-900 border border-slate-700/60 rounded-3xl max-w-5xl w-full overflow-hidden shadow-2xl relative max-h-[92vh] overflow-y-auto"
-            onClick={(e) => e.stopPropagation()}
-          >
-            {/* Absolute Close Button */}
-            <button
-              type="button"
-              onClick={() => setSelectedProject(null)}
-              aria-label="Close modal"
-              className="absolute top-4 right-4 z-30 flex h-9 w-9 items-center justify-center rounded-full bg-slate-800/90 text-slate-400 transition hover:bg-slate-700 hover:text-white focus:outline-none shadow-md border border-white/10"
-            >
-              <X className="h-5 w-5" />
-            </button>
+      {selectedProject && (() => {
+        const modalName = localizeProjectName(selectedProject.name, selectedProject.name_ar, language);
+        const modalDeveloper = localizeDeveloper(selectedProject.developer, selectedProject.developer_ar, language);
+        const modalLocation = localizeLocation(selectedProject.location, selectedProject.location_ar, language);
+        const modalType = localizePropertyType(selectedProject.type, selectedProject.type_ar, language);
+        const modalStatus = localizeStatus(selectedProject.status, selectedProject.status_ar, language);
+        const modalPrice = localizeField(selectedProject.price, language, selectedProject.price);
+        const modalArea = localizeField(selectedProject.area, language, selectedProject.area);
+        const modalPaymentPlan = localizePaymentPlan(selectedProject.paymentPlan, selectedProject.payment_plan_ar, language);
+        const modalStage = localizeConstructionStage(selectedProject.construction_stage, selectedProject.construction_stage_ar, language);
+        const modalStructure = localizeField(
+          selectedProject.structure,
+          language,
+          language === "ar" ? "تشطيبات عصرية بمعايير عالمية فاخرة" : (selectedProject.structure || "G + 2")
+        );
+        const modalCompletion = localizeField(
+          selectedProject.completion_date,
+          language,
+          language === "ar" ? "الربع الرابع 2026" : (selectedProject.completion_date || "Q4 2026")
+        );
+        const modalDescription = selectedProject.description_ar || (hasArabicText(selectedProject.description)
+          ? selectedProject.description
+          : (language === "ar"
+            ? `فرصة استثمارية وسكنية متميزة من تطوير ${modalDeveloper} بموقع استراتيجي في سلطنة عمان.`
+            : (selectedProject.description || `Premium real estate opportunity developed by ${selectedProject.developer} in prime location across Oman.`)));
+        const modalWhatsappUrl = getProjectWhatsAppUrl({
+          projectName: modalName,
+          location: modalLocation,
+          price: modalPrice,
+          developer: modalDeveloper,
+          whatsapp_number: selectedProject.whatsapp_number,
+          locale: language === "ar" ? "ar" : "en",
+        });
 
-            {/* Bento Grid Two-Column Container */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 p-5 sm:p-7 lg:p-8">
-              
-              {/* LEFT COLUMN: Main Visual & Title */}
-              <div className="flex flex-col justify-between">
-                <div>
-                  {/* Top Tags */}
-                  <div className="flex flex-wrap items-center gap-2">
-                    <span className="inline-flex items-center rounded-full border border-sky-400/30 bg-sky-500/10 px-3 py-1 text-xs font-semibold tracking-wider text-sky-300 uppercase">
-                      {selectedProject.type || (language === "ar" ? "مشروع متميز" : "Prime Development")}
-                    </span>
-                    <span className="inline-flex items-center rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-xs font-semibold tracking-wider text-emerald-300 uppercase">
-                      {selectedProject.status || (language === "ar" ? "متاح للحجز" : "Available")}
-                    </span>
+        return (
+          <div
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md p-3 sm:p-4 md:p-6"
+            onClick={() => setSelectedProject(null)}
+          >
+            <div
+              className="bg-slate-900 border border-slate-700/60 rounded-3xl max-w-5xl w-full overflow-hidden shadow-2xl relative max-h-[92vh] overflow-y-auto"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Absolute Close Button */}
+              <button
+                type="button"
+                onClick={() => setSelectedProject(null)}
+                aria-label="Close modal"
+                className="absolute top-4 right-4 z-30 flex h-9 w-9 items-center justify-center rounded-full bg-slate-800/90 text-slate-400 transition hover:bg-slate-700 hover:text-white focus:outline-none shadow-md border border-white/10"
+              >
+                <X className="h-5 w-5" />
+              </button>
+
+              {/* Bento Grid Two-Column Container */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 p-5 sm:p-7 lg:p-8">
+                
+                {/* LEFT COLUMN: Main Visual & Title */}
+                <div className="flex flex-col justify-between">
+                  <div>
+                    {/* Top Tags */}
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="inline-flex items-center rounded-full border border-sky-400/30 bg-sky-500/10 px-3 py-1 text-xs font-semibold tracking-wider text-sky-300 uppercase">
+                        {modalType}
+                      </span>
+                      <span className="inline-flex items-center rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-xs font-semibold tracking-wider text-emerald-300 uppercase">
+                        {modalStatus}
+                      </span>
+                    </div>
+
+                    {/* Title */}
+                    <h3 className="mt-3 font-serif text-2xl sm:text-3xl font-bold tracking-tight text-white rtl:font-[family-name:var(--font-cairo)] rtl:tracking-normal">
+                      {modalName}
+                    </h3>
+
+                    {/* Developer Subtitle */}
+                    <p className="mt-1 flex items-center gap-1.5 text-xs font-medium text-slate-400">
+                      <Building2 className="h-3.5 w-3.5 text-sky-400 shrink-0" />
+                      <span>{modalDeveloper}</span>
+                    </p>
                   </div>
 
-                  {/* Title */}
-                  <h3 className="mt-3 font-serif text-2xl sm:text-3xl font-bold tracking-tight text-white rtl:font-[family-name:var(--font-cairo)] rtl:tracking-normal">
-                    {selectedProject.name}
-                  </h3>
+                  {/* Main Visual Image (with automatic smooth slideshow support) */}
+                  <div
+                    onMouseEnter={() => setIsHovered(true)}
+                    onMouseLeave={() => setIsHovered(false)}
+                    className="relative mt-4 h-72 sm:h-80 lg:h-[390px] w-full shrink-0 overflow-hidden rounded-2xl bg-slate-950 border border-white/10 shadow-lg select-none"
+                  >
+                    {modalSlides.length > 0 ? (
+                      modalSlides.map((slideUrl, idx) => (
+                        <div
+                          key={slideUrl + idx}
+                          className={`absolute inset-0 h-full w-full transition-opacity duration-700 ease-in-out ${
+                            idx === currentSlide
+                              ? "opacity-100 z-10"
+                              : "opacity-0 z-0 pointer-events-none"
+                          }`}
+                        >
+                          <PropertyImage
+                            src={slideUrl}
+                            alt={`${modalName} - View ${idx + 1}`}
+                            fill
+                            sizes="(max-width: 1024px) 100vw, 600px"
+                            quality={85}
+                            fallbackLabel={modalName}
+                            className="object-cover"
+                          />
+                        </div>
+                      ))
+                    ) : (
+                      <Image
+                        src={selectedProject.image}
+                        alt={modalName}
+                        fill
+                        sizes="(max-width: 1024px) 100vw, 600px"
+                        quality={85}
+                        className="object-cover"
+                      />
+                    )}
 
-                  {/* Developer Subtitle */}
-                  <p className="mt-1 flex items-center gap-1.5 text-xs font-medium text-slate-400">
-                    <Building2 className="h-3.5 w-3.5 text-sky-400 shrink-0" />
-                    <span>{selectedProject.developer}</span>
+                    {/* Absolute White "Location" Badge Overlapping Bottom-Left */}
+                    <div className="absolute bottom-4 left-4 z-20 flex items-center gap-2 rounded-xl bg-white px-3.5 py-2 text-xs font-bold text-slate-950 shadow-2xl backdrop-blur-md">
+                      <MapPin className="h-4 w-4 text-sky-600 shrink-0" />
+                      <span>{modalLocation}</span>
+                    </div>
+
+                    {/* Carousel Controls if multiple images exist */}
+                    {modalSlides.length > 1 && (
+                      <>
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setCurrentSlide((prev) =>
+                              prev === 0 ? modalSlides.length - 1 : prev - 1,
+                            );
+                          }}
+                          aria-label="Previous photo"
+                          className="absolute left-3 top-1/2 -translate-y-1/2 z-10 flex h-8 w-8 items-center justify-center rounded-full bg-slate-950/70 text-white backdrop-blur-md transition hover:bg-slate-900 border border-white/10"
+                        >
+                          <ChevronLeft className="h-4 w-4" />
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setCurrentSlide((prev) =>
+                              prev === modalSlides.length - 1 ? 0 : prev + 1,
+                            );
+                          }}
+                          aria-label="Next photo"
+                          className="absolute right-3 top-1/2 -translate-y-1/2 z-10 flex h-8 w-8 items-center justify-center rounded-full bg-slate-950/70 text-white backdrop-blur-md transition hover:bg-slate-900 border border-white/10"
+                        >
+                          <ChevronRight className="h-4 w-4" />
+                        </button>
+
+                        <div className="absolute top-3 left-3 z-10 rounded-full bg-slate-950/80 px-2 py-0.5 text-[10px] font-semibold text-slate-200 backdrop-blur-md border border-white/10">
+                          {currentSlide + 1} / {modalSlides.length}
+                        </div>
+
+                        {/* Dot Indicators */}
+                        <div className="absolute bottom-4 right-4 z-20 flex items-center gap-1.5">
+                          {modalSlides.map((_, idx) => (
+                            <button
+                              key={idx}
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setCurrentSlide(idx);
+                              }}
+                              aria-label={`Go to slide ${idx + 1}`}
+                              className={`h-1.5 rounded-full transition-all duration-300 ${
+                                idx === currentSlide
+                                  ? "w-5 bg-amber-400"
+                                  : "w-1.5 bg-white/60 hover:bg-white"
+                              }`}
+                            />
+                          ))}
+                        </div>
+                      </>
+                    )}
+                  </div>
+
+                  {/* Brief description */}
+                  <p className="mt-3 text-xs leading-relaxed text-slate-400 line-clamp-2">
+                    {modalDescription}
                   </p>
                 </div>
 
-                {/* Main Visual Image (with automatic smooth slideshow support) */}
-                <div
-                  onMouseEnter={() => setIsHovered(true)}
-                  onMouseLeave={() => setIsHovered(false)}
-                  className="relative mt-4 h-72 sm:h-80 lg:h-[390px] w-full shrink-0 overflow-hidden rounded-2xl bg-slate-950 border border-white/10 shadow-lg select-none"
-                >
-                  {modalSlides.length > 0 ? (
-                    modalSlides.map((slideUrl, idx) => (
-                      <div
-                        key={slideUrl + idx}
-                        className={`absolute inset-0 h-full w-full transition-opacity duration-700 ease-in-out ${
-                          idx === currentSlide
-                            ? "opacity-100 z-10"
-                            : "opacity-0 z-0 pointer-events-none"
-                        }`}
-                      >
-                        <PropertyImage
-                          src={slideUrl}
-                          alt={`${selectedProject.name} - View ${idx + 1}`}
-                          fill
-                          sizes="(max-width: 1024px) 100vw, 600px"
-                          quality={85}
-                          fallbackLabel={selectedProject.name}
-                          className="object-cover"
-                        />
-                      </div>
-                    ))
-                  ) : (
-                    <Image
-                      src={selectedProject.image}
-                      alt={selectedProject.name}
-                      fill
-                      sizes="(max-width: 1024px) 100vw, 600px"
-                      quality={85}
-                      className="object-cover"
-                    />
-                  )}
-
-                  {/* Absolute White "Location" Badge Overlapping Bottom-Left */}
-                  <div className="absolute bottom-4 left-4 z-20 flex items-center gap-2 rounded-xl bg-white px-3.5 py-2 text-xs font-bold text-slate-950 shadow-2xl backdrop-blur-md">
-                    <MapPin className="h-4 w-4 text-sky-600 shrink-0" />
-                    <span>{selectedProject.location || "Muscat, Oman"}</span>
-                  </div>
-
-                  {/* Carousel Controls if multiple images exist */}
-                  {modalSlides.length > 1 && (
-                    <>
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setCurrentSlide((prev) =>
-                            prev === 0 ? modalSlides.length - 1 : prev - 1,
-                          );
-                        }}
-                        aria-label="Previous photo"
-                        className="absolute left-3 top-1/2 -translate-y-1/2 z-10 flex h-8 w-8 items-center justify-center rounded-full bg-slate-950/70 text-white backdrop-blur-md transition hover:bg-slate-900 border border-white/10"
-                      >
-                        <ChevronLeft className="h-4 w-4" />
-                      </button>
-
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setCurrentSlide((prev) =>
-                            prev === modalSlides.length - 1 ? 0 : prev + 1,
-                          );
-                        }}
-                        aria-label="Next photo"
-                        className="absolute right-3 top-1/2 -translate-y-1/2 z-10 flex h-8 w-8 items-center justify-center rounded-full bg-slate-950/70 text-white backdrop-blur-md transition hover:bg-slate-900 border border-white/10"
-                      >
-                        <ChevronRight className="h-4 w-4" />
-                      </button>
-
-                      <div className="absolute top-3 left-3 z-10 rounded-full bg-slate-950/80 px-2 py-0.5 text-[10px] font-semibold text-slate-200 backdrop-blur-md border border-white/10">
-                        {currentSlide + 1} / {modalSlides.length}
-                      </div>
-
-                      {/* Dot Indicators */}
-                      <div className="absolute bottom-4 right-4 z-20 flex items-center gap-1.5">
-                        {modalSlides.map((_, idx) => (
-                          <button
-                            key={idx}
-                            type="button"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setCurrentSlide(idx);
-                            }}
-                            aria-label={`Go to slide ${idx + 1}`}
-                            className={`h-1.5 rounded-full transition-all duration-300 ${
-                              idx === currentSlide
-                                ? "w-5 bg-amber-400"
-                                : "w-1.5 bg-white/60 hover:bg-white"
-                            }`}
-                          />
-                        ))}
-                      </div>
-                    </>
-                  )}
-                </div>
-
-                {/* Brief description */}
-                <p className="mt-3 text-xs leading-relaxed text-slate-400 line-clamp-2">
-                  {selectedProject.description ||
-                    (language === "ar"
-                      ? `فرصة استثمارية وسكنية متميزة من تطوير ${selectedProject.developer} بموقع استراتيجي في سلطنة عمان.`
-                      : `Premium real estate opportunity developed by ${selectedProject.developer} in prime location across Oman.`)}
-                </p>
-              </div>
-
-              {/* RIGHT COLUMN: Bento Grid Data */}
-              <div className="flex flex-col justify-between gap-3.5">
-                
-                {/* 1. TOP ROW: Completion Date & Status */}
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="rounded-2xl border border-white/10 bg-slate-950/60 p-4 backdrop-blur-md flex flex-col justify-between">
-                    <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">
-                      {language === "ar" ? "تاريخ الإنجاز" : "Completion Date"}
-                    </p>
-                    <div className="mt-2 flex items-center gap-2">
-                      <CalendarDays className="h-4 w-4 text-sky-400 shrink-0" />
-                      <p className="font-[family-name:var(--font-outfit)] text-base sm:text-lg font-bold text-white truncate">
-                        {selectedProject.completion_date || "Q4 2026"}
+                {/* RIGHT COLUMN: Bento Grid Data */}
+                <div className="flex flex-col justify-between gap-3.5">
+                  
+                  {/* 1. TOP ROW: Completion Date & Status */}
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="rounded-2xl border border-white/10 bg-slate-950/60 p-4 backdrop-blur-md flex flex-col justify-between">
+                      <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">
+                        {language === "ar" ? "تاريخ الإنجاز" : "Completion Date"}
                       </p>
-                    </div>
-                  </div>
-
-                  <div className="rounded-2xl border border-emerald-500/30 bg-emerald-950/20 p-4 backdrop-blur-md flex flex-col justify-between">
-                    <p className="text-[11px] font-semibold uppercase tracking-wider text-emerald-400">
-                      {language === "ar" ? "حالة المشروع" : "Status"}
-                    </p>
-                    <div className="mt-2 flex items-center gap-2">
-                      <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse shrink-0" />
-                      <p className="font-[family-name:var(--font-outfit)] text-base sm:text-lg font-bold text-emerald-200 truncate">
-                        {selectedProject.status || (language === "ar" ? "متاح للحجز" : "Available")}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                {/* 2. MIDDLE SECTION: Bento Grid for Site Area, Construction Stage, Type, Structure */}
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                  {/* Site Area Card */}
-                  <div className="rounded-2xl border border-white/10 bg-slate-950/60 p-3.5 flex flex-col justify-between">
-                    <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">
-                      {language === "ar" ? "المساحة" : "Site Area"}
-                    </span>
-                    <div className="mt-1 flex items-center gap-1.5">
-                      <Square className="h-3.5 w-3.5 text-sky-400 shrink-0" />
-                      <span className="font-[family-name:var(--font-outfit)] text-sm font-bold text-white truncate">
-                        {selectedProject.area}
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Construction Stage Card (Highlighted solid orange accent) */}
-                  <div className="rounded-2xl bg-amber-500 p-3.5 text-slate-950 shadow-[0_0_24px_rgba(245,158,11,0.25)] flex flex-col justify-between">
-                    <span className="text-[10px] font-extrabold uppercase tracking-wider text-amber-950">
-                      {language === "ar" ? "مرحلة البناء" : "Construction Stage"}
-                    </span>
-                    <p className="mt-1 font-[family-name:var(--font-outfit)] text-sm font-black text-slate-950 truncate">
-                      {selectedProject.construction_stage || (language === "ar" ? "قيد الإنشاء" : "Under Construction")}
-                    </p>
-                  </div>
-
-                  {/* Type Card */}
-                  <div className="rounded-2xl border border-white/10 bg-slate-950/60 p-3.5 flex flex-col justify-between">
-                    <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">
-                      {language === "ar" ? "النوع" : "Type"}
-                    </span>
-                    <p className="mt-1 font-[family-name:var(--font-outfit)] text-sm font-bold text-white truncate">
-                      {selectedProject.type || (language === "ar" ? "سكني" : "Residential")}
-                    </p>
-                  </div>
-
-                  {/* Structure Card */}
-                  <div className="rounded-2xl border border-white/10 bg-slate-950/60 p-3.5 flex flex-col justify-between">
-                    <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">
-                      {language === "ar" ? "الهيكل" : "Structure"}
-                    </span>
-                    <p className="mt-1 font-[family-name:var(--font-outfit)] text-sm font-bold text-white truncate">
-                      {selectedProject.structure || "G + 2"}
-                    </p>
-                  </div>
-
-                  {/* Developer Card */}
-                  <div className="col-span-2 sm:col-span-2 rounded-2xl border border-white/10 bg-slate-950/60 p-3.5 flex flex-col justify-between">
-                    <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">
-                      {copy.developer}
-                    </span>
-                    <div className="mt-1 flex items-center gap-1.5">
-                      <Building2 className="h-3.5 w-3.5 text-sky-400 shrink-0" />
-                      <span className="font-[family-name:var(--font-outfit)] text-sm font-bold text-white truncate">
-                        {selectedProject.developer}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* 3. BOTTOM SECTION: Floor Plan Card (Floor Plan on left, Price & Details on right) */}
-                <div className="rounded-2xl border border-white/10 bg-slate-950/70 p-4 backdrop-blur-md">
-                  <div className="flex flex-col sm:flex-row items-center gap-4">
-                    {/* Floor Plan Visual */}
-                    <div className="relative h-28 w-full sm:w-36 shrink-0 overflow-hidden rounded-xl border border-white/10 bg-slate-900 flex items-center justify-center group/fp">
-                      {selectedProject.floor_plan_url ? (
-                        <PropertyImage
-                          src={selectedProject.floor_plan_url}
-                          alt="Floor Plan"
-                          fill
-                          sizes="(max-width: 640px) 100vw, 144px"
-                          fallbackLabel={selectedProject.name}
-                          fallbackSublabel="Floor Plan"
-                          className="object-contain p-1"
-                        />
-                      ) : (
-                        <div className="flex flex-col items-center justify-center p-3 text-center text-slate-500">
-                          <Ruler className="h-6 w-6 text-emerald-400 mb-1" />
-                          <span className="text-[10px] font-medium text-slate-400">
-                            {language === "ar" ? "مخطط الطابق" : "Floor Plan"}
-                          </span>
-                        </div>
-                      )}
-                      <span className="absolute bottom-1 right-1 rounded bg-slate-950/85 px-1.5 py-0.5 text-[9px] font-semibold text-emerald-300 backdrop-blur-sm border border-emerald-500/20">
-                        {language === "ar" ? "مخطط الطابق" : "Floor Plan"}
-                      </span>
-                    </div>
-
-                    {/* Price & Specs */}
-                    <div className="flex-1 w-full flex flex-col justify-between">
-                      <div>
-                        <span className="text-[10px] font-semibold tracking-wider text-slate-400 uppercase">
-                          {language === "ar" ? "السعر الابتدائي" : "Starting Price"}
-                        </span>
-                        <p className="font-[family-name:var(--font-outfit)] text-2xl sm:text-3xl font-extrabold text-amber-400">
-                          {selectedProject.price}
+                      <div className="mt-2 flex items-center gap-2">
+                        <CalendarDays className="h-4 w-4 text-sky-400 shrink-0" />
+                        <p className="font-[family-name:var(--font-outfit)] text-base sm:text-lg font-bold text-white truncate">
+                          {modalCompletion}
                         </p>
                       </div>
+                    </div>
 
-                      <div className="mt-2 flex items-center gap-2.5 text-xs text-slate-300">
-                        <span className="inline-flex items-center gap-1">
-                          <Square className="h-3 w-3 text-sky-400" />
-                          <span>{selectedProject.area}</span>
-                        </span>
-                        <span className="text-slate-600">•</span>
-                        <span>{selectedProject.paymentPlan}</span>
+                    <div className="rounded-2xl border border-emerald-500/30 bg-emerald-950/20 p-4 backdrop-blur-md flex flex-col justify-between">
+                      <p className="text-[11px] font-semibold uppercase tracking-wider text-emerald-400">
+                        {language === "ar" ? "حالة المشروع" : "Status"}
+                      </p>
+                      <div className="mt-2 flex items-center gap-2">
+                        <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse shrink-0" />
+                        <p className="font-[family-name:var(--font-outfit)] text-base sm:text-lg font-bold text-emerald-200 truncate">
+                          {modalStatus}
+                        </p>
                       </div>
                     </div>
                   </div>
-                </div>
 
-                {/* Action CTA Buttons: Transition to Dedicated Page & WhatsApp */}
-                <div className="flex flex-col sm:flex-row items-center gap-3">
-                  <Link
-                    href={`/${language}/projects/${selectedProject.id}/`}
-                    prefetch={true}
-                    className="flex w-full sm:flex-1 items-center justify-center gap-2 rounded-xl border border-sky-400/40 bg-sky-500/10 px-5 py-3.5 text-xs sm:text-sm font-semibold text-sky-300 backdrop-blur-md transition hover:border-sky-300/70 hover:bg-sky-500/20 active:scale-[0.99]"
-                  >
-                    <span>
-                      {copy.viewFullPage ||
-                        (language === "ar" ? "عرض كامل التفاصيل" : "View Full Details")}
-                    </span>
-                    <ChevronRight className="h-4 w-4 rtl:rotate-180" />
-                  </Link>
-                  <a
-                    href={getProjectWhatsAppUrl({
-                      projectName: selectedProject.name,
-                      location: selectedProject.location,
-                      price: selectedProject.price,
-                      developer: selectedProject.developer,
-                      whatsapp_number: selectedProject.whatsapp_number,
-                      locale: language === "ar" ? "ar" : "en",
-                    })}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex w-full sm:flex-1 items-center justify-center gap-2 rounded-xl bg-emerald-500 px-5 py-3.5 text-xs sm:text-sm font-bold text-slate-950 shadow-[0_0_24px_rgba(16,185,129,0.35)] transition hover:bg-emerald-400 active:scale-[0.99]"
-                  >
-                    <WhatsAppIcon className="h-5 w-5 fill-slate-950" />
-                    <span>
-                      {language === "ar"
-                        ? "تسجيل الاهتمام"
-                        : "Register Interest"}
-                    </span>
-                  </a>
+                  {/* 2. MIDDLE SECTION: Bento Grid for Site Area, Construction Stage, Type, Structure */}
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                    {/* Site Area Card */}
+                    <div className="rounded-2xl border border-white/10 bg-slate-950/60 p-3.5 flex flex-col justify-between">
+                      <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">
+                        {language === "ar" ? "المساحة" : "Site Area"}
+                      </span>
+                      <div className="mt-1 flex items-center gap-1.5">
+                        <Square className="h-3.5 w-3.5 text-sky-400 shrink-0" />
+                        <span className="font-[family-name:var(--font-outfit)] text-sm font-bold text-white truncate">
+                          {modalArea}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Construction Stage Card (Highlighted solid orange accent) */}
+                    <div className="rounded-2xl bg-amber-500 p-3.5 text-slate-950 shadow-[0_0_24px_rgba(245,158,11,0.25)] flex flex-col justify-between">
+                      <span className="text-[10px] font-extrabold uppercase tracking-wider text-amber-950">
+                        {language === "ar" ? "مرحلة البناء" : "Construction Stage"}
+                      </span>
+                      <p className="mt-1 font-[family-name:var(--font-outfit)] text-sm font-black text-slate-950 truncate">
+                        {modalStage}
+                      </p>
+                    </div>
+
+                    {/* Type Card */}
+                    <div className="rounded-2xl border border-white/10 bg-slate-950/60 p-3.5 flex flex-col justify-between">
+                      <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">
+                        {language === "ar" ? "النوع" : "Type"}
+                      </span>
+                      <p className="mt-1 font-[family-name:var(--font-outfit)] text-sm font-bold text-white truncate">
+                        {modalType}
+                      </p>
+                    </div>
+
+                    {/* Structure Card */}
+                    <div className="rounded-2xl border border-white/10 bg-slate-950/60 p-3.5 flex flex-col justify-between">
+                      <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">
+                        {language === "ar" ? "الهيكل" : "Structure"}
+                      </span>
+                      <p className="mt-1 font-[family-name:var(--font-outfit)] text-sm font-bold text-white truncate">
+                        {modalStructure}
+                      </p>
+                    </div>
+
+                    {/* Developer Card */}
+                    <div className="col-span-2 sm:col-span-2 rounded-2xl border border-white/10 bg-slate-950/60 p-3.5 flex flex-col justify-between">
+                      <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">
+                        {copy.developer}
+                      </span>
+                      <div className="mt-1 flex items-center gap-1.5">
+                        <Building2 className="h-3.5 w-3.5 text-sky-400 shrink-0" />
+                        <span className="font-[family-name:var(--font-outfit)] text-sm font-bold text-white truncate">
+                          {modalDeveloper}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* 3. BOTTOM SECTION: Floor Plan Card (Floor Plan on left, Price & Details on right) */}
+                  <div className="rounded-2xl border border-white/10 bg-slate-950/70 p-4 backdrop-blur-md">
+                    <div className="flex flex-col sm:flex-row items-center gap-4">
+                      {/* Floor Plan Visual */}
+                      <div className="relative h-28 w-full sm:w-36 shrink-0 overflow-hidden rounded-xl border border-white/10 bg-slate-900 flex items-center justify-center group/fp">
+                        {selectedProject.floor_plan_url ? (
+                          <PropertyImage
+                            src={selectedProject.floor_plan_url}
+                            alt="Floor Plan"
+                            fill
+                            sizes="(max-width: 640px) 100vw, 144px"
+                            fallbackLabel={modalName}
+                            fallbackSublabel="Floor Plan"
+                            className="object-contain p-1"
+                          />
+                        ) : (
+                          <div className="flex flex-col items-center justify-center p-3 text-center text-slate-500">
+                            <Ruler className="h-6 w-6 text-emerald-400 mb-1" />
+                            <span className="text-[10px] font-medium text-slate-400">
+                              {language === "ar" ? "مخطط الطابق" : "Floor Plan"}
+                            </span>
+                          </div>
+                        )}
+                        <span className="absolute bottom-1 right-1 rounded bg-slate-950/85 px-1.5 py-0.5 text-[9px] font-semibold text-emerald-300 backdrop-blur-sm border border-emerald-500/20">
+                          {language === "ar" ? "مخطط الطابق" : "Floor Plan"}
+                        </span>
+                      </div>
+
+                      {/* Price & Specs */}
+                      <div className="flex-1 w-full flex flex-col justify-between">
+                        <div>
+                          <span className="text-[10px] font-semibold tracking-wider text-slate-400 uppercase">
+                            {language === "ar" ? "السعر الابتدائي" : "Starting Price"}
+                          </span>
+                          <p className="font-[family-name:var(--font-outfit)] text-2xl sm:text-3xl font-extrabold text-amber-400">
+                            {modalPrice}
+                          </p>
+                        </div>
+
+                        <div className="mt-2 flex items-center gap-2.5 text-xs text-slate-300">
+                          <span className="inline-flex items-center gap-1">
+                            <Square className="h-3 w-3 text-sky-400" />
+                            <span>{modalArea}</span>
+                          </span>
+                          <span className="text-slate-600">•</span>
+                          <span>{modalPaymentPlan}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Action CTA Buttons: Transition to Dedicated Page & WhatsApp */}
+                  <div className="flex flex-col sm:flex-row items-center gap-3">
+                    <Link
+                      href={`/${language}/projects/${selectedProject.id}/`}
+                      prefetch={true}
+                      className="flex w-full sm:flex-1 items-center justify-center gap-2 rounded-xl border border-sky-400/40 bg-sky-500/10 px-5 py-3.5 text-xs sm:text-sm font-semibold text-sky-300 backdrop-blur-md transition hover:border-sky-300/70 hover:bg-sky-500/20 active:scale-[0.99]"
+                    >
+                      <span>
+                        {copy.viewFullPage ||
+                          (language === "ar" ? "عرض كامل التفاصيل" : "View Full Details")}
+                      </span>
+                      <ChevronRight className="h-4 w-4 rtl:rotate-180" />
+                    </Link>
+                    <a
+                      href={modalWhatsappUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex w-full sm:flex-1 items-center justify-center gap-2 rounded-xl bg-emerald-500 px-5 py-3.5 text-xs sm:text-sm font-bold text-slate-950 shadow-[0_0_24px_rgba(16,185,129,0.35)] transition hover:bg-emerald-400 active:scale-[0.99]"
+                    >
+                      <WhatsAppIcon className="h-5 w-5 fill-slate-950" />
+                      <span>
+                        {language === "ar"
+                          ? "تسجيل الاهتمام"
+                          : "Register Interest"}
+                      </span>
+                    </a>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
       </div>
     </section>
   );

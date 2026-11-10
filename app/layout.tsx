@@ -201,7 +201,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
                   "founder": {
                     "@type": "Person",
                     "name": "MOHAMED AL HARTHY",
-                    "jobTitle": "Managing Director",
+                    "jobTitle": "Founder & Chairman",
                   },
                   "areaServed": {
                     "@type": "Country",

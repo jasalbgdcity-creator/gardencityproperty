@@ -5,6 +5,11 @@ import { supabase } from "@/lib/supabase";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import ProjectPresentation from "@/components/ProjectPresentation";
+import {
+  localizeDeveloper,
+  localizeProjectName,
+  localizeLocation,
+} from "@/lib/localization";
 
 interface Props {
   params: Promise<{ locale: string; slug: string }>;
@@ -54,9 +59,18 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   }
 
   // Construct crisp, unique, < 70 chars title
-  const projectName = (isAr ? (project.name_ar || project.nameAr || project.name || "مشروع عقاري") : (project.name || "Development")).trim();
-  const location = (isAr ? (project.location_ar || project.location || "مسقط") : (project.location || "Muscat")).trim();
-  const developer = (isAr ? (project.developer_ar || project.developer || "جاردن سيتي بروبرتيز") : (project.developer || "Premier Master Developer")).trim();
+  const projectName = (
+    localizeProjectName(project.name, project.name_ar || project.nameAr, locale) ||
+    (isAr ? "مشروع عقاري" : "Development")
+  ).trim();
+  const location = (
+    localizeLocation(project.location, project.location_ar, locale) ||
+    (isAr ? "مسقط" : "Muscat")
+  ).trim();
+  const developer = (
+    localizeDeveloper(project.developer, project.developer_ar, locale) ||
+    (isAr ? "جاردن سيتي بروبرتيز" : "Premier Master Developer")
+  ).trim();
 
   let pageTitle = "";
   if (isAr) {
@@ -210,9 +224,15 @@ export default async function ProjectDetailPage({ params }: Props) {
     nearby_locations: mergedNearbyPlaces,
   };
 
-  const projectName = (isAr ? (project.name_ar || project.nameAr || project.name) : project.name) || "Development";
-  const location = (isAr ? (project.location_ar || project.location) : project.location) || (isAr ? "مسقط، سلطنة عمان" : "Muscat, Oman");
-  const developer = (isAr ? (project.developer_ar || project.developer) : project.developer) || (isAr ? "جاردن سيتي بروبرتيز" : "Premier Master Developer");
+  const projectName =
+    localizeProjectName(project.name, project.name_ar || project.nameAr, locale) ||
+    "Development";
+  const location =
+    localizeLocation(project.location, project.location_ar, locale) ||
+    (isAr ? "مسقط، سلطنة عمان" : "Muscat, Oman");
+  const developer =
+    localizeDeveloper(project.developer, project.developer_ar, locale) ||
+    (isAr ? "جاردن سيتي بروبرتيز" : "Premier Master Developer");
   const gallery: string[] = Array.from(
     new Set([project.image, ...(project.gallery_urls || project.galleryUrls || [])].filter(Boolean))
   );

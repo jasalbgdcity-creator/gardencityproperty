@@ -8,6 +8,15 @@ import Breadcrumbs from "@/components/Breadcrumbs";
 import PropertyImage from "@/components/PropertyImage";
 import { supabase } from "@/lib/supabase";
 import {
+  localizeField,
+  localizeDeveloper,
+  localizeProjectName,
+  localizePropertyType,
+  localizeStatus,
+  localizePaymentPlan,
+  localizeLocation,
+} from "@/lib/localization";
+import {
   Building2,
   CalendarDays,
   MapPin,
@@ -172,7 +181,7 @@ export default async function ProjectsIndexPage({ params }: Props) {
         itemListElement: projects.map((p, idx) => ({
           "@type": "ListItem",
           position: idx + 1,
-          name: p.name || `Project ${p.id}`,
+          name: localizeProjectName(p.name, (p as any).name_ar, locale) || `Project ${p.id}`,
           url: `${baseUrl}/${locale}/projects/${p.id}/`,
         })),
       },
@@ -258,12 +267,40 @@ export default async function ProjectsIndexPage({ params }: Props) {
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                 {projects.map((project) => {
                   const projectId = project.id;
-                  const projectName = project.name || "Garden City Development";
-                  const price = project.price || (isAr ? "عند الطلب" : "Upon Request");
-                  const paymentPlan = project.payment_plan || project.paymentPlan || (isAr ? "مرن" : "Flexible");
-                  const area = project.area || project.site_area || (isAr ? "متعدد المساحات" : "Various sizes");
-                  const developer = project.developer || (isAr ? "مطور معتمد" : "Approved Developer");
-                  const location = project.location || "Muscat, Oman";
+                  const projectName =
+                    localizeProjectName(project.name, (project as any).name_ar, locale) ||
+                    "Garden City Development";
+                  const price = localizeField(
+                    project.price,
+                    locale,
+                    isAr ? "عند الطلب" : "Upon Request"
+                  );
+                  const paymentPlan = localizePaymentPlan(
+                    project.payment_plan || project.paymentPlan,
+                    (project as any).payment_plan_ar,
+                    locale
+                  );
+                  const area = localizeField(
+                    project.area || project.site_area,
+                    locale,
+                    isAr ? "متعدد المساحات" : "Various sizes"
+                  );
+                  const developer = localizeDeveloper(
+                    project.developer,
+                    (project as any).developer_ar,
+                    locale
+                  );
+                  const location = localizeLocation(
+                    project.location,
+                    (project as any).location_ar,
+                    locale
+                  );
+                  const status = project.status
+                    ? localizeStatus(project.status, (project as any).status_ar, locale)
+                    : null;
+                  const completionDate = project.completion_date
+                    ? localizeField(project.completion_date, locale, project.completion_date)
+                    : null;
                   const detailHref = `/${locale}/projects/${projectId}/`;
 
                   return (
@@ -282,10 +319,10 @@ export default async function ProjectsIndexPage({ params }: Props) {
                         />
                         <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/20 to-transparent opacity-80" />
 
-                        {project.status && (
+                        {status && (
                           <div className="absolute top-4 left-4 rtl:left-auto rtl:right-4 z-10">
                             <span className="rounded-full border border-sky-400/40 bg-slate-950/80 px-3 py-1 text-xs font-semibold text-sky-300 backdrop-blur-md">
-                              {project.status}
+                              {status}
                             </span>
                           </div>
                         )}
@@ -324,10 +361,10 @@ export default async function ProjectsIndexPage({ params }: Props) {
                               <Ruler className="h-3.5 w-3.5 text-slate-500" />
                               {area}
                             </span>
-                            {project.completion_date && (
+                            {completionDate && (
                               <span className="inline-flex items-center gap-1.5">
                                 <CalendarDays className="h-3.5 w-3.5 text-slate-500" />
-                                {project.completion_date}
+                                {completionDate}
                               </span>
                             )}
                           </div>
