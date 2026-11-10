@@ -1,0 +1,110 @@
+@import "tailwindcss";
+
+:root {
+  --font-plus-jakarta: "Plus Jakarta Sans", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-serif: "Playfair Display", Georgia, Cambria, "Times New Roman", Times, serif;
+  --font-outfit: var(--font-serif);
+  --font-cairo: "Cairo", "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
+  --background: #050816;
+  --foreground: #e8eef7;
+  --muted: #94a3b8;
+  --accent: #38bdf8;
+  --accent-strong: #0ea5e9;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-plus-jakarta);
+  --font-serif: var(--font-serif);
+  --font-display: var(--font-serif);
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-plus-jakarta), ui-sans-serif, system-ui, sans-serif;
+}
+
+html[dir="rtl"] body {
+  font-family: var(--font-cairo), var(--font-plus-jakarta), ui-sans-serif, system-ui,
+    sans-serif;
+}
+
+/* Ensure Arabic text strictly retains Cairo and never inherits Latin serif */
+[dir="rtl"],
+[lang="ar"],
+[dir="rtl"] body,
+html[dir="rtl"] body {
+  font-family: var(--font-cairo), var(--font-plus-jakarta), ui-sans-serif, system-ui, sans-serif;
+}
+
+[dir="rtl"] .font-serif,
+[dir="rtl"] [class*="font-serif"],
+[dir="rtl"] .font-display,
+[dir="rtl"] [class*="font-display"],
+[dir="rtl"] [class*="font-\[family-name\:var\(--font-outfit\)\]"],
+[dir="rtl"] [class*="font-\[family-name\:var\(--font-serif\)\]"],
+[lang="ar"] .font-serif,
+[lang="ar"] [class*="font-serif"],
+[lang="ar"] .font-display,
+[lang="ar"] [class*="font-display"],
+[lang="ar"] [class*="font-\[family-name\:var\(--font-outfit\)\]"],
+[lang="ar"] [class*="font-\[family-name\:var\(--font-serif\)\]"],
+html[dir="rtl"] .font-serif,
+html[dir="rtl"] [class*="font-serif"],
+html[dir="rtl"] .font-display,
+html[dir="rtl"] [class*="font-display"],
+html[dir="rtl"] [class*="font-\[family-name\:var\(--font-outfit\)\]"],
+html[dir="rtl"] [class*="font-\[family-name\:var\(--font-serif\)\]"] {
+  font-family: var(--font-cairo), var(--font-plus-jakarta), ui-sans-serif, sans-serif !important;
+}
+
+/* In Arabic script, letter-spacing breaks cursive connections and disconnects letters.
+   Reset letter spacing to normal across all RTL containers */
+[dir="rtl"],
+[lang="ar"],
+[dir="rtl"] [class*="tracking-"],
+[lang="ar"] [class*="tracking-"],
+html[dir="rtl"] [class*="tracking-"] {
+  letter-spacing: 0 !important;
+}
+
+/* Ensure proper Arabic OpenType ligature shaping and text rendering */
+[dir="rtl"], [lang="ar"] {
+  font-feature-settings: "kern" 1, "liga" 1, "clig" 1, "calt" 1;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection {
+  background: rgba(56, 189, 248, 0.28);
+  color: #f8fafc;
+}
+
+@keyframes heroTitleFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-hero-title {
+  animation: heroTitleFadeIn 0.7s cubic-bezier(0.22, 1, 0.36, 1) 0.1s backwards;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-hero-title {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+}

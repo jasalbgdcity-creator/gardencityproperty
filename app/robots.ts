@@ -1,0 +1,30 @@
+import type { MetadataRoute } from "next";
+
+export default function robots(): MetadataRoute.Robots {
+  const baseUrl = "https://www.gardencityproperties.net";
+
+  return {
+    rules: [
+      {
+        userAgent: "*",
+        allow: "/",
+        disallow: ["/admin/", "/api/"],
+      },
+      {
+        userAgent: ["Googlebot", "Googlebot-Image", "Bingbot"],
+        allow: [
+          "/",
+          "/favicon.ico",
+          "/icon.png",
+          "/*.ico",
+          "/*.png",
+          "/*.jpeg",
+          "/*.webp",
+        ],
+        disallow: ["/admin/", "/api/"],
+      },
+    ],
+    sitemap: `${baseUrl}/sitemap.xml`,
+    host: baseUrl,
+  };
+}

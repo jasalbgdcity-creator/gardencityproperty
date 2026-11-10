@@ -1,0 +1,23 @@
+[[redirects]]
+  from = "/en/admin"
+  to = "/admin/"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "/en/admin/*"
+  to = "/admin/:splat"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "/ar/admin"
+  to = "/admin/"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "/ar/admin/*"
+  to = "/admin/:splat"
+  status = 301
+  force = true
