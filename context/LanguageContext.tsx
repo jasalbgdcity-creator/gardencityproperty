@@ -26,7 +26,7 @@ const dictionaries = {
     hero: {
       badge: "Oman · Consultancy · Assets",
       title: "Garden City Properties",
-      subtitle: "Your Gateway to Real Estate Investment in Oman – Discover, Invest & Own with Confidence.",
+      subtitle: "Your Trusted Partner in Real Estate Brokerage in Oman.",
       explore: "Explore Services",
       contact: "Contact Us",
     },
@@ -247,7 +247,7 @@ const dictionaries = {
     hero: {
       badge: "عمان · استشارات · أصول",
       title: "جاردن سيتي بروبرتيز",
-      subtitle: "بوابتك للاستثمار العقاري في عُمان – اكتشف، استثمر وامتلك بثقة.",
+      subtitle: "شريكك الموثوق في الوساطة العقارية في عُمان.",
       explore: "استكشف الخدمات",
       contact: "تواصل معنا",
     },
