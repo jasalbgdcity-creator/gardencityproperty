@@ -26,7 +26,7 @@ const dictionaries = {
     hero: {
       badge: "Oman · Consultancy · Assets",
       title: "Garden City Properties",
-      subtitle: "Your Trusted Partner In Real Estate Brokerage In Oman.",
+      subtitle: "Your Gateway to Real Estate Investment in Oman – Discover, Invest & Own with Confidence.",
       explore: "Explore Services",
       contact: "Contact Us",
     },
@@ -247,14 +247,14 @@ const dictionaries = {
     hero: {
       badge: "عمان · استشارات · أصول",
       title: "جاردن سيتي بروبرتيز",
-      subtitle: "شريكك الموثوق في الوساطة العقارية في سلطنة عمان.",
+      subtitle: "بوابتك للاستثمار العقاري في عُمان – اكتشف، استثمر وامتلك بثقة.",
       explore: "استكشف الخدمات",
       contact: "تواصل معنا",
     },
     about: {
       eyebrow: "من نحن",
       title: "استشارات عقارية بمعايير احترافية لسوق دقيق.",
-      body: "جاردن سيتي بروبرتيز شركة استشارات عقارية موثوقة في سلطنة عمان. نلتزم بتقديم حلول مهنية وموثوقة ومخصصة تلبي احتياجات ملاك العقارات والمستثمرين والمطورين والعملاء من الشركات.",
+      body: "تأسست في عام 2007، وهي إحدى الأسماء الموثوقة في عُمان في مجالات الوساطة والتقييم والاستشارات العقارية، بدعم من فريق متعدد التخصصات من المهندسين والمساحين وخبراء العقارات.",
       stats: [
         { value: "عمان", label: "تركيز السوق" },
         { value: "360°", label: "استشارات الأصول" },

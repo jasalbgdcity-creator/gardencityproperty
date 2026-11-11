@@ -71,7 +71,7 @@ import {
   localizeConstructionStage,
   localizeLocation,
 } from "@/lib/localization";
-import { COUNTRY_CODES } from "@/lib/countryCodes";
+import CountryCodeSelector from "@/components/CountryCodeSelector";
 
 export interface PropertyConfiguration {
   id?: string;
@@ -3214,23 +3214,11 @@ Client Note: ${message}`,
                   <label className="block text-xs font-medium text-slate-300">
                     {isAr ? "رقم الهاتف / واتساب" : "Phone / WhatsApp Number"} *
                     <div className="mt-1.5 flex gap-2">
-                      <select
-                        name="country_code"
+                      <CountryCodeSelector
                         value={inquiryCountryCode}
-                        onChange={(e) => setInquiryCountryCode(e.target.value)}
-                        aria-label={isAr ? "رمز الدولة" : "Country Dial Code"}
-                        className="shrink-0 rounded-xl border border-white/10 bg-slate-950/80 px-2 sm:px-3 py-3 text-xs sm:text-sm text-white outline-none focus:border-sky-400/50 focus:ring-2 focus:ring-sky-400/10 cursor-pointer max-w-[115px] sm:max-w-[150px]"
-                      >
-                        {COUNTRY_CODES.map((c) => (
-                          <option
-                            key={`${c.code}-${c.dialCode}`}
-                            value={c.dialCode}
-                            className="bg-slate-900 text-white"
-                          >
-                            {c.flag} {c.dialCode} ({isAr ? c.nameAr : c.name})
-                          </option>
-                        ))}
-                      </select>
+                        onChange={setInquiryCountryCode}
+                        isAr={isAr}
+                      />
                       <input
                         required
                         type="tel"

@@ -5,7 +5,7 @@ import { motion } from "framer-motion";
 import { Mail, MapPin, Phone } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
 import { getGeneralWhatsAppUrl } from "@/lib/whatsapp";
-import { COUNTRY_CODES } from "@/lib/countryCodes";
+import CountryCodeSelector from "@/components/CountryCodeSelector";
 
 export default function Contact() {
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -114,25 +114,11 @@ export default function Contact() {
             <label className="grid gap-2 text-sm text-slate-300">
               {copy.phone}
               <div className="flex gap-2">
-                <div className="relative shrink-0">
-                  <select
-                    name="country_code"
-                    value={countryCode}
-                    onChange={(e) => setCountryCode(e.target.value)}
-                    aria-label={isAr ? "رمز الدولة" : "Country Dial Code"}
-                    className="h-full rounded-xl border border-white/10 bg-slate-950/80 px-2.5 sm:px-3 py-3 text-xs sm:text-sm text-white outline-none transition focus:border-sky-400/50 focus:ring-4 focus:ring-sky-400/15 cursor-pointer max-w-[125px] sm:max-w-[155px]"
-                  >
-                    {COUNTRY_CODES.map((c) => (
-                      <option
-                        key={`${c.code}-${c.dialCode}`}
-                        value={c.dialCode}
-                        className="bg-slate-900 text-white"
-                      >
-                        {c.flag} {c.dialCode} ({isAr ? c.nameAr : c.name})
-                      </option>
-                    ))}
-                  </select>
-                </div>
+                <CountryCodeSelector
+                  value={countryCode}
+                  onChange={setCountryCode}
+                  isAr={isAr}
+                />
                 <input
                   required
                   type="tel"

@@ -89,8 +89,8 @@ export default function Footer() {
             </Link>
             <p className="mt-4 max-w-sm text-sm leading-relaxed text-gray-400">
               {isAr
-                ? "جاردن سيتي بروبرتيز هي شركة استشارات عقارية رائدة في سلطنة عمان، تقدم خدمات وساطة وتقييم وإدارة أصول متخصصة لمساعدة العملاء على تحقيق أهدافهم العقارية."
-                : "Garden City Properties is a premier real estate consultancy in Oman, offering expert brokerage, valuation, and management services to help clients achieve their property goals."}
+                ? "تأسست في عام 2007، وهي إحدى الأسماء الموثوقة في عُمان في مجالات الوساطة والتقييم والاستشارات العقارية، بدعم من فريق متعدد التخصصات من المهندسين والمساحين وخبراء العقارات."
+                : "Established in 2007, one of Oman’s trusted names in real estate brokerage, valuation and consultancy, backed by a multidisciplinary team of engineers, surveyors, and property specialists."}
             </p>
           </div>
 

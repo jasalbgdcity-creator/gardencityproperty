@@ -27,8 +27,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     : "About Us | Garden City Properties Oman";
 
   const description = isAr
-    ? "تعرف على شركة جاردن سيتي بروبرتيز الرائدة في الاستشارات والوساطة العقارية والتقييم المعتمد بسلطنة عمان منذ عام 2007، بقيادة الفاضل محمد الحارثي وآدم الحارثي."
-    : "Learn about Garden City Properties, founded in 2007 in Muscat, Oman. Led by Managing Director Mohamed Al Harthy and General Manager Adam Al Harthy, delivering trusted brokerage, valuation, and advisory.";
+    ? "تأسست في عام 2007، وهي إحدى الأسماء الموثوقة في عُمان في مجالات الوساطة والتقييم والاستشارات العقارية، بقيادة المؤسس ورئيس مجلس الإدارة الفاضل محمد الحارثي."
+    : "Established in 2007, one of Oman’s trusted names in real estate brokerage, valuation and consultancy, led by Founder & Chairman Mohamed Al Harthy and General Manager Adam Al Harthy.";
 
   const canonicalUrl = `${baseUrl}/${locale}/about/`;
 
@@ -91,8 +91,8 @@ export default async function AboutPage({ params }: Props) {
         url: `${baseUrl}/${locale}/about/`,
         name: isAr ? "من نحن | شركة جاردن سيتي بروبرتيز" : "About Us | Garden City Properties",
         description: isAr
-          ? "الملف التعريفي لشركة جاردن سيتي بروبرتيز في سلطنة عمان، تأسست عام 2007."
-          : "Corporate profile of Garden City Properties Oman, established in 2007.",
+          ? "تأسست في عام 2007، وهي إحدى الأسماء الموثوقة في عُمان في مجالات الوساطة والتقييم والاستشارات العقارية، بدعم من فريق متعدد التخصصات من المهندسين والمساحين وخبراء العقارات."
+          : "Established in 2007, one of Oman’s trusted names in real estate brokerage, valuation and consultancy, backed by a multidisciplinary team of engineers, surveyors, and property specialists.",
         isPartOf: {
           "@id": `${baseUrl}/${locale}/#website`,
         },
@@ -155,8 +155,8 @@ export default async function AboutPage({ params }: Props) {
               </h1>
               <p className="mt-6 text-base md:text-lg leading-relaxed text-slate-300">
                 {isAr
-                  ? "تأسست شركة جاردن سيتي بروبرتيز في عام 2007، وتُعد إحدى أبرز وأعرق الشركات المتخصصة في الاستشارات العقارية، التقييم العقاري المعتمد، والوساطة في سلطنة عمان. نجمع بين الخبرة المعمقة بالسوق العماني والرؤية الاستثمارية المبتكرة."
-                  : "Established in 2007, Garden City Properties has grown into one of Oman's trusted names in real estate consultancy, certified property valuation, and asset advisory. Backed by multidisciplinary specialists, we create sustainable long-term value for investors and property owners."}
+                  ? "تأسست في عام 2007، وهي إحدى الأسماء الموثوقة في عُمان في مجالات الوساطة والتقييم والاستشارات العقارية، بدعم من فريق متعدد التخصصات من المهندسين والمساحين وخبراء العقارات."
+                  : "Established in 2007, one of Oman’s trusted names in real estate brokerage, valuation and consultancy, backed by a multidisciplinary team of engineers, surveyors, and property specialists."}
               </p>
             </div>
           </div>
@@ -175,14 +175,16 @@ export default async function AboutPage({ params }: Props) {
         <section className="border-t border-white/10 bg-gradient-to-r from-slate-950 via-slate-900 to-slate-950 py-16">
           <div className="mx-auto max-w-7xl px-4 md:px-8">
             <div className="flex flex-col md:flex-row items-center justify-between gap-8 rounded-3xl border border-white/10 bg-white/5 p-8 md:p-12 backdrop-blur-xl">
-              <div className="max-w-xl text-center md:text-start">
-                <h3 className="font-[family-name:var(--font-outfit)] text-2xl md:text-3xl font-bold text-white">
-                  {isAr ? "هل تبحث عن خدمات استشارية أو تقييم عقاري؟" : "Looking for Property Advisory or Certified Valuation?"}
-                </h3>
-                <p className="mt-3 text-slate-300 text-sm md:text-base leading-relaxed">
+              <div className="max-w-2xl text-center md:text-start">
+                <h3 className="font-[family-name:var(--font-outfit)] text-2xl md:text-3xl font-bold text-white rtl:font-[family-name:var(--font-cairo)]">
                   {isAr
-                    ? "استكشف خدماتنا الخمس المتكاملة أو تواصل مباشرة مع فريقنا الاستشاري في مسقط لمناقشة محفظتك العقارية."
-                    : "Explore our five core real estate practice areas or connect with our consultancy team in Muscat today."}
+                    ? "بوابتك للاستثمار العقاري في عُمان – اكتشف، استثمر وامتلك بثقة."
+                    : "Your Gateway to Real Estate Investment in Oman – Discover, Invest & Own with Confidence."}
+                </h3>
+                <p className="mt-3 text-slate-300 text-sm md:text-base leading-relaxed rtl:font-[family-name:var(--font-cairo)]">
+                  {isAr
+                    ? "استكشف محفظتنا المختارة من المشاريع الرائدة وخدماتنا الاستشارية المتكاملة، أو تواصل مباشرة مع فريقنا الاستشاري في مسقط اليوم."
+                    : "Explore our curated portfolio of premier developments and advisory services, or connect with our consultancy team in Muscat today."}
                 </p>
               </div>
 
