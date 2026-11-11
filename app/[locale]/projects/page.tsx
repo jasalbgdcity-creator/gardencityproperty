@@ -388,38 +388,6 @@ export default async function ProjectsIndexPage({ params }: Props) {
             )}
           </div>
         </section>
-
-        {/* Internal Link CTA Section */}
-        <section className="border-t border-white/10 bg-slate-950/70 py-16">
-          <div className="mx-auto max-w-7xl px-4 md:px-8">
-            <div className="flex flex-col md:flex-row items-center justify-between gap-6 rounded-3xl border border-white/10 bg-white/5 p-8 md:p-10 backdrop-blur-xl">
-              <div>
-                <h3 className="text-xl md:text-2xl font-bold text-white">
-                  {isAr ? "هل لديك عقار ترغب في وساطته أو تقييمه؟" : "Have a Property to Broker, Manage, or Value?"}
-                </h3>
-                <p className="mt-2 text-slate-300 text-sm">
-                  {isAr
-                    ? "يقدم مستشارونا العقاريون المعتمدون في مسقط خدمات وساطة وإدارة وتقييم تلبي أعلى المعايير البنكية."
-                    : "Our accredited Muscat real estate advisors provide certified valuation and brokerage services meeting the highest standards."}
-                </p>
-              </div>
-              <div className="flex flex-wrap gap-4 shrink-0">
-                <Link
-                  href={`/${locale}/about/`}
-                  className="rounded-full border border-sky-400/30 px-5 py-2.5 text-xs sm:text-sm font-semibold text-sky-300 hover:bg-sky-400/10"
-                >
-                  {isAr ? "نبذة عن الشركة" : "About Garden City"}
-                </Link>
-                <Link
-                  href={`/${locale}/contact/`}
-                  className="rounded-full bg-gradient-to-r from-sky-400 to-cyan-300 px-5 py-2.5 text-xs sm:text-sm font-bold text-slate-950 shadow-[0_0_20px_rgba(56,189,248,0.35)]"
-                >
-                  {isAr ? "تواصل مع مستشار عقاري" : "Speak to an Advisor"}
-                </Link>
-              </div>
-            </div>
-          </div>
-        </section>
       </main>
 
       <Footer />
