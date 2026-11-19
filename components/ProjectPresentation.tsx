@@ -301,67 +301,10 @@ export default function ProjectPresentation({
     new Set([project.image, ...(project.gallery_urls || project.galleryUrls || [])].filter(Boolean))
   );
 
-  // Fallback / default configurations tailored to luxury Oman developments
-  const defaultConfigurations: PropertyConfiguration[] = [
-    {
-      id: "conf-1",
-      type: "1-Bedroom",
-      title: "1-Bedroom Executive Residence",
-      titleAr: "شقة تنفيذية غرفة وصالة فاخرة",
-      bedrooms: 1,
-      bathrooms: 2,
-      bua: "78 m² (840 sq ft)",
-      price: price,
-      floorPlanUrl: floorPlanUrl || gallery[0],
-      description: "Smart layout featuring floor-to-ceiling glass, en-suite master bedroom, powder room, and private sun balcony.",
-      descriptionAr: "تصميم ذكي يتضمن واجهات زجاجية واسعة، غرفة ماستر مع حمام داخلي، حمام ضيوف، وشرفة بإطلالة ساحرة.",
-    },
-    {
-      id: "conf-2",
-      type: "2-Bedroom",
-      title: "2-Bedroom Premium Suite",
-      titleAr: "شقة عائلية غرفتين وصالة فاخرة",
-      bedrooms: 2,
-      bathrooms: 3,
-      bua: "128 m² (1,377 sq ft)",
-      price: isAr ? `ابتداءً من ${price}` : `From ${price}`,
-      floorPlanUrl: floorPlanUrl || gallery[0],
-      description: "Generous living and dining zones, bespoke Italian fitted kitchen, two en-suite bedrooms, and dedicated utility room.",
-      descriptionAr: "مساحات معيشة واستقبال رحبة، مطبخ مجهز بتصاميم إيطالية راقية، غرفتي نوم بحمامات مستقلة، وغرفة غسيل.",
-    },
-    {
-      id: "conf-3",
-      type: "3-Bedroom",
-      title: "3-Bedroom Horizon Sky Residence",
-      titleAr: "شقة سكاي هورايزون 3 غرف وصالة",
-      bedrooms: 3,
-      bathrooms: 4,
-      bua: "192 m² (2,066 sq ft)",
-      price: isAr ? "عروض حصرية عند الطلب" : "Exclusive on Application",
-      floorPlanUrl: floorPlanUrl || gallery[0],
-      description: "Panoramic double-aspect corner views, maid's quarters with en-suite, expansive entertaining terrace, and dual parking spaces.",
-      descriptionAr: "إطلالات بانورامية زاوية مزدوجة، غرفة مساعدة مع حمام، تراس ترفيهي فسيح، وموقفان مخصصان للسيارات.",
-    },
-    {
-      id: "conf-4",
-      type: "Townhouse/Villa",
-      title: "4-Bedroom Signature Townhouse",
-      titleAr: "تاون هاوس مستقل 4 غرف نوم",
-      bedrooms: 4,
-      bathrooms: 5,
-      bua: "315 m² (3,390 sq ft)",
-      plot: "360 m² (3,875 sq ft)",
-      price: isAr ? "تواصل للاطلاع على السعر" : "Inquire for Pricing",
-      floorPlanUrl: floorPlanUrl || gallery[0],
-      description: "Multi-level private residence featuring landscaped private garden, rooftop entertainment terrace, private lift provision, and two-car garage.",
-      descriptionAr: "مسكن مستقل متعدد المستويات بحديقة خاصة منسقة، تراس علوي للجلسات العائلية، وتجهيز لمصعد داخلي وموقف مغطى لسيارتين.",
-    },
-  ];
-
-  const configurations =
+  const configurations: PropertyConfiguration[] =
     Array.isArray(project.property_configurations) && project.property_configurations.length > 0
       ? project.property_configurations
-      : defaultConfigurations;
+      : [];
 
   // Selected configuration state
   const [selectedConfIndex, setSelectedConfIndex] = useState(0);
@@ -1433,7 +1376,8 @@ Client Note: ${message}`,
       {/* =========================================================================
           SECTION 4: PROPERTY TYPES & AVAILABLE UNITS (VISUAL CARDS & MODAL)
           ========================================================================= */}
-      <section className="relative border-t border-white/10 py-20 bg-slate-950/60">
+      {configurations.length > 0 && (
+        <section className="relative border-t border-white/10 py-20 bg-slate-950/60">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col md:flex-row md:items-end justify-between mb-10">
             <div>
@@ -1693,6 +1637,7 @@ Client Note: ${message}`,
           </div>
         </div>
       </section>
+      )}
 
       {/* =========================================================================
           INTERACTIVE CONFIGURATION DETAIL MODAL / LIGHTBOX
@@ -3167,7 +3112,7 @@ Client Note: ${message}`,
 
               <form onSubmit={handleEnquirySubmit} className="mt-6 space-y-4">
                 {/* Pre-filled Project Title & Configuration */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className={`grid grid-cols-1 ${configurations.length > 0 ? "sm:grid-cols-2" : ""} gap-4`}>
                   <label className="block text-xs font-medium text-slate-300">
                     {isAr ? "المشروع المحدد" : "Selected Property"}
                     <input
@@ -3178,26 +3123,30 @@ Client Note: ${message}`,
                     />
                   </label>
 
-                  <label className="block text-xs font-medium text-slate-300">
-                    {isAr ? "نموذج الوحدة المفضل" : "Preferred Configuration"}
-                    <select
-                      value={enquiryConfig}
-                      onChange={(e) => setEnquiryConfig(e.target.value)}
-                      className="mt-1.5 w-full rounded-xl border border-white/10 bg-slate-950/70 px-4 py-3 text-xs font-semibold text-white outline-none focus:border-sky-400/50"
-                    >
-                      <option value="General Inquiry">
-                        {isAr ? "استفسار عام عن المشروع" : "General Project Inquiry"}
-                      </option>
-                      {configurations.map((c, i) => (
-                        <option
-                          key={i}
-                          value={isAr ? c.titleAr || c.title : c.title}
-                        >
-                          {isAr ? c.titleAr || c.title : c.title}
+                  {configurations.length > 0 && (
+                    <label className="block text-xs font-medium text-slate-300">
+                      {isAr ? "نموذج الوحدة المفضل" : "Preferred Configuration"}
+                      <select
+                        value={enquiryConfig}
+                        onChange={(e) => setEnquiryConfig(e.target.value)}
+                        className="mt-1.5 w-full rounded-xl border border-white/10 bg-slate-950/70 px-4 py-3 text-xs font-semibold text-white outline-none focus:border-sky-400/50"
+                      >
+                        <option value="General Inquiry">
+                          {isAr ? "استفسار عام عن المشروع" : "General Project Inquiry"}
                         </option>
-                      ))}
-                    </select>
-                  </label>
+                        {configurations.map((c, i) => {
+                          const optLabel = isAr
+                            ? c.name_ar || c.titleAr || c.name || c.title || `وحدة ${i + 1}`
+                            : c.name || c.title || `Unit ${i + 1}`;
+                          return (
+                            <option key={c.id || i} value={optLabel}>
+                              {optLabel}
+                            </option>
+                          );
+                        })}
+                      </select>
+                    </label>
+                  )}
                 </div>
 
                 {/* Name */}
