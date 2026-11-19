@@ -64,6 +64,7 @@ import {
   localizeToArabic,
   localizeField,
   localizeDeveloper,
+  isValidDeveloper,
   localizeProjectName,
   localizePropertyType,
   localizeStatus,
@@ -958,15 +959,17 @@ Client Note: ${message}`,
             >
               {title}
             </h1>
-            <p className="mt-3 flex items-center gap-2 text-sm sm:text-base font-medium text-slate-300">
-              <span className="text-slate-400">{isAr ? "المطور العقاري:" : "Developed by:"}</span>
-              <span
-                className="font-semibold text-sky-300 [unicode-bidi:isolate]"
-                dir={hasArabicText(developer) ? "rtl" : "ltr"}
-              >
-                {developer}
-              </span>
-            </p>
+            {isValidDeveloper(project.developer) && (
+              <p className="mt-3 flex items-center gap-2 text-sm sm:text-base font-medium text-slate-300">
+                <span className="text-slate-400">{isAr ? "المطور العقاري:" : "Developed by:"}</span>
+                <span
+                  className="font-semibold text-sky-300 [unicode-bidi:isolate]"
+                  dir={hasArabicText(developer) ? "rtl" : "ltr"}
+                >
+                  {developer}
+                </span>
+              </p>
+            )}
           </div>
 
           {/* Hero Bottom Bar: Price & Action CTAs */}
@@ -1083,14 +1086,20 @@ Client Note: ${message}`,
                       <div className="space-y-4">
                         <div dir="rtl" className="text-right font-[family-name:var(--font-cairo)] space-y-4 leading-relaxed">
                           <p className="text-slate-200">
-                            {`يقدم مشروع ${title} في ${location} وجهة سكنية واستثمارية استثنائية بتطوير من `}
-                            <span
-                              dir={hasArabicText(developer) ? "rtl" : "ltr"}
-                              className="inline-block font-semibold text-sky-300 [unicode-bidi:isolate]"
-                            >
-                              {developer}
-                            </span>
-                            {`. صُمم المشروع ليجسد أرقى معايير الفخامة العصرية والتكامل المعماري، موفراً أسلوب حياة فريداً يجمع بين الراحة التامة والخصوصية العالية في قلب سلطنة عمان.`}
+                            {isValidDeveloper(project.developer) ? (
+                              <>
+                                {`يقدم مشروع ${title} في ${location} وجهة سكنية واستثمارية استثنائية بتطوير من `}
+                                <span
+                                  dir={hasArabicText(developer) ? "rtl" : "ltr"}
+                                  className="inline-block font-semibold text-sky-300 [unicode-bidi:isolate]"
+                                >
+                                  {developer}
+                                </span>
+                                {`. صُمم المشروع ليجسد أرقى معايير الفخامة العصرية والتكامل المعماري، موفراً أسلوب حياة فريداً يجمع بين الراحة التامة والخصوصية العالية في قلب سلطنة عمان.`}
+                              </>
+                            ) : (
+                              `يقدم مشروع ${title} في ${location} وجهة سكنية واستثمارية استثنائية. صُمم المشروع ليجسد أرقى معايير الفخامة العصرية والتكامل المعماري، موفراً أسلوب حياة فريداً يجمع بين الراحة التامة والخصوصية العالية في قلب سلطنة عمان.`
+                            )}
                           </p>
                           <p className="text-slate-300">
                             {`يتميز المشروع بموقعه الاستراتيجي الحيوي الذي يتيح سهولة وسرعة الوصول إلى أبرز الوجهات ومراكز الأعمال والترفيه في مسقط، مع توفير خطة سداد ميسرة (${paymentPlan}) وتاريخ تسليم متوقع بحلول ${completionDate}، مما يجعله فرصة استثمارية واعدة بعوائد مجزية وقيمة أصول متنامية على المدى الطويل.`}
@@ -1162,7 +1171,9 @@ Client Note: ${message}`,
                   return (
                     <div dir="ltr" className="text-left font-sans space-y-4 leading-relaxed">
                       <p>
-                        {`Discover ${title}, an exceptional residential and investment destination set within the vibrant backdrop of ${location}, proudly developed by ${developer}. Crafted with exacting standards, the development merges contemporary aesthetics with enduring structural integrity, presenting a premier living environment tailored for discerning homeowners and international investors.`}
+                        {isValidDeveloper(project.developer)
+                          ? `Discover ${title}, an exceptional residential and investment destination set within the vibrant backdrop of ${location}, proudly developed by ${developer}. Crafted with exacting standards, the development merges contemporary aesthetics with enduring structural integrity, presenting a premier living environment tailored for discerning homeowners and international investors.`
+                          : `Discover ${title}, an exceptional residential and investment destination set within the vibrant backdrop of ${location}. Crafted with exacting standards, the development merges contemporary aesthetics with enduring structural integrity, presenting a premier living environment tailored for discerning homeowners and international investors.`}
                       </p>
                       <p>
                         {`Centrally positioned for seamless connectivity to major commercial arteries, prestigious educational facilities, and leisure landmarks across Oman, ${title} establishes a new benchmark for capital appreciation, rental yield, and elevated everyday comfort.`}
@@ -1207,15 +1218,17 @@ Client Note: ${message}`,
               </h3>
 
               <div className="space-y-4 text-xs sm:text-sm">
-                <div className="flex items-center justify-between py-2 border-b border-white/5">
-                  <span className="text-slate-400">{copy.developer || (isAr ? "المطور" : "Developer")}</span>
-                  <span
-                    className="font-semibold text-white rtl:text-left ltr:text-right [unicode-bidi:isolate]"
-                    dir={hasArabicText(developer) ? "rtl" : "ltr"}
-                  >
-                    {developer}
-                  </span>
-                </div>
+                {isValidDeveloper(project.developer) && (
+                  <div className="flex items-center justify-between py-2 border-b border-white/5">
+                    <span className="text-slate-400">{copy.developer || (isAr ? "المطور" : "Developer")}</span>
+                    <span
+                      className="font-semibold text-white rtl:text-left ltr:text-right [unicode-bidi:isolate]"
+                      dir={hasArabicText(developer) ? "rtl" : "ltr"}
+                    >
+                      {developer}
+                    </span>
+                  </div>
+                )}
                 <div className="flex items-center justify-between py-2 border-b border-white/5">
                   <span className="text-slate-400">{copy.stage || (isAr ? "مرحلة البناء" : "Stage")}</span>
                   <span className="font-semibold text-amber-400 rtl:text-left ltr:text-right">{constructionStage}</span>
@@ -3421,15 +3434,17 @@ Client Note: ${message}`,
                       >
                         {localizeProjectName(rel.name, rel.name_ar || rel.nameAr, locale)}
                       </h3>
-                      <p className="mt-1 text-xs text-slate-400 flex items-center gap-1.5">
-                        <Building2 className="h-3.5 w-3.5 text-sky-400 shrink-0" />
-                        <span
-                          dir={hasArabicText(localizeDeveloper(rel.developer, rel.developer_ar, locale)) ? "rtl" : "ltr"}
-                          className="[unicode-bidi:isolate]"
-                        >
-                          {localizeDeveloper(rel.developer, rel.developer_ar, locale)}
-                        </span>
-                      </p>
+                      {isValidDeveloper(rel.developer) && (
+                        <p className="mt-1 text-xs text-slate-400 flex items-center gap-1.5">
+                          <Building2 className="h-3.5 w-3.5 text-sky-400 shrink-0" />
+                          <span
+                            dir={hasArabicText(localizeDeveloper(rel.developer, rel.developer_ar, locale)) ? "rtl" : "ltr"}
+                            className="[unicode-bidi:isolate]"
+                          >
+                            {localizeDeveloper(rel.developer, rel.developer_ar, locale)}
+                          </span>
+                        </p>
+                      )}
                     </div>
 
                     <div className="mt-5 pt-3 border-t border-white/5 flex items-center justify-between">

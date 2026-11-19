@@ -133,7 +133,7 @@ export function parseProjectsCsv(csv: string): Project[] {
       const price = fallback(columns[2], "0");
       const paymentPlan = fallback(columns[3], "N/A");
       const startingArea = fallback(columns[4], "0");
-      const developer = fallback(columns[5], "N/A");
+      const developer = cleanCell(columns[5]);
 
       return {
         id: `proj-${index}-${rawName.toLowerCase().replace(/[^a-z0-9]/g, "-")}`,
@@ -192,7 +192,7 @@ export function parseProjectsJson(data: unknown): Project[] {
         const price = String(cols[2] ?? "").trim() || "0";
         const paymentPlan = String(cols[3] ?? "").trim() || "N/A";
         const startingArea = String(cols[4] ?? "").trim() || "0";
-        const developer = String(cols[5] ?? "").trim() || "N/A";
+        const developer = String(cols[5] ?? "").trim();
 
         return {
           id: `proj-json-row-${idx}-${name.toLowerCase().replace(/[^a-z0-9]/g, "-")}`,
@@ -268,7 +268,7 @@ export function parseProjectsJson(data: unknown): Project[] {
             row.Developer ??
             row["Developer"] ??
             "",
-        ).trim() || "N/A";
+        ).trim();
 
       return {
         id: `proj-json-${index}-${name.toLowerCase().replace(/[^a-z0-9]/g, "-")}`,

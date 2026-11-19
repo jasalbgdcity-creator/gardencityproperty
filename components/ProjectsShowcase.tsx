@@ -25,6 +25,7 @@ import {
   localizeField,
   localizeToArabic,
   localizeDeveloper,
+  isValidDeveloper,
   localizeProjectName,
   localizePropertyType,
   localizeStatus,
@@ -384,11 +385,13 @@ export default function ProjectsShowcase() {
               const localizedArea = language === "ar" ? localizeToArabic(project.area, project.area) : project.area;
               const localizedLocation = localizeLocation(project.location, project.location_ar, language);
 
+              const hasValidDev = isValidDeveloper(project.developer);
+
               const whatsappUrl = getProjectWhatsAppUrl({
                 projectName: localizedProjectName,
                 location: localizedLocation,
                 price: localizedPrice,
-                developer: localizedDeveloper,
+                developer: hasValidDev ? localizedDeveloper : undefined,
                 whatsapp_number: project.whatsapp_number,
                 locale: language === "ar" ? "ar" : "en",
               });
@@ -410,12 +413,12 @@ export default function ProjectsShowcase() {
                   <div className="relative h-[230px] w-full overflow-hidden bg-slate-900">
                     <PropertyImage
                       src={project.image}
-                      alt={`${localizedProjectName} - Luxury Property in Oman developed by ${localizedDeveloper}`}
+                      alt={hasValidDev ? `${localizedProjectName} - Luxury Property in Oman developed by ${localizedDeveloper}` : `${localizedProjectName} - Luxury Property in Oman`}
                       fill
                       sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
                       quality={85}
                       fallbackLabel={localizedProjectName}
-                      fallbackSublabel={localizedDeveloper}
+                      fallbackSublabel={hasValidDev ? localizedDeveloper : undefined}
                       className="object-cover transition-transform duration-700 ease-out group-hover:scale-105"
                     />
                     <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-slate-900/60 via-transparent to-transparent opacity-60" />
@@ -453,15 +456,17 @@ export default function ProjectsShowcase() {
                           </span>
                         </span>
                       </li>
-                      <li className="flex items-center gap-2">
-                        <Building2 size={14} className="shrink-0 text-slate-400" />
-                        <span className="truncate">
-                          <span>{copy.developer}: </span>
-                          <span className="font-medium text-slate-300">
-                            {localizedDeveloper}
+                      {hasValidDev && (
+                        <li className="flex items-center gap-2">
+                          <Building2 size={14} className="shrink-0 text-slate-400" />
+                          <span className="truncate">
+                            <span>{copy.developer}: </span>
+                            <span className="font-medium text-slate-300">
+                              {localizedDeveloper}
+                            </span>
                           </span>
-                        </span>
-                      </li>
+                        </li>
+                      )}
                     </ul>
 
                     {/* Action Buttons: Primary + WhatsApp */}
@@ -498,6 +503,7 @@ export default function ProjectsShowcase() {
       {/* Quick View Bento-Box Modal */}
       {selectedProject && (() => {
         const modalName = localizeProjectName(selectedProject.name, selectedProject.name_ar, language);
+        const hasModalValidDev = isValidDeveloper(selectedProject.developer);
         const modalDeveloper = localizeDeveloper(selectedProject.developer, selectedProject.developer_ar, language);
         const modalLocation = localizeLocation(selectedProject.location, selectedProject.location_ar, language);
         const modalType = localizePropertyType(selectedProject.type, selectedProject.type_ar, language);
@@ -519,13 +525,17 @@ export default function ProjectsShowcase() {
         const modalDescription = selectedProject.description_ar || (hasArabicText(selectedProject.description)
           ? selectedProject.description
           : (language === "ar"
-            ? `فرصة استثمارية وسكنية متميزة من تطوير ${modalDeveloper} بموقع استراتيجي في سلطنة عمان.`
-            : (selectedProject.description || `Premium real estate opportunity developed by ${selectedProject.developer} in prime location across Oman.`)));
+            ? (hasModalValidDev
+                ? `فرصة استثمارية وسكنية متميزة من تطوير ${modalDeveloper} بموقع استراتيجي في سلطنة عمان.`
+                : `فرصة استثمارية وسكنية متميزة بموقع استراتيجي في سلطنة عمان.`)
+            : (selectedProject.description || (hasModalValidDev
+                ? `Premium real estate opportunity developed by ${selectedProject.developer} in prime location across Oman.`
+                : `Premium real estate opportunity in prime location across Oman.`))));
         const modalWhatsappUrl = getProjectWhatsAppUrl({
           projectName: modalName,
           location: modalLocation,
           price: modalPrice,
-          developer: modalDeveloper,
+          developer: hasModalValidDev ? modalDeveloper : undefined,
           whatsapp_number: selectedProject.whatsapp_number,
           locale: language === "ar" ? "ar" : "en",
         });
@@ -571,10 +581,12 @@ export default function ProjectsShowcase() {
                     </h3>
 
                     {/* Developer Subtitle */}
-                    <p className="mt-1 flex items-center gap-1.5 text-xs font-medium text-slate-400">
-                      <Building2 className="h-3.5 w-3.5 text-sky-400 shrink-0" />
-                      <span>{modalDeveloper}</span>
-                    </p>
+                    {hasModalValidDev && (
+                      <p className="mt-1 flex items-center gap-1.5 text-xs font-medium text-slate-400">
+                        <Building2 className="h-3.5 w-3.5 text-sky-400 shrink-0" />
+                        <span>{modalDeveloper}</span>
+                      </p>
+                    )}
                   </div>
 
                   {/* Main Visual Image (with automatic smooth slideshow support) */}
@@ -761,17 +773,19 @@ export default function ProjectsShowcase() {
                     </div>
 
                     {/* Developer Card */}
-                    <div className="col-span-2 sm:col-span-2 rounded-2xl border border-white/10 bg-slate-950/60 p-3.5 flex flex-col justify-between">
-                      <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">
-                        {copy.developer}
-                      </span>
-                      <div className="mt-1 flex items-center gap-1.5">
-                        <Building2 className="h-3.5 w-3.5 text-sky-400 shrink-0" />
-                        <span className="font-[family-name:var(--font-outfit)] text-sm font-bold text-white truncate">
-                          {modalDeveloper}
+                    {hasModalValidDev && (
+                      <div className="col-span-2 sm:col-span-2 rounded-2xl border border-white/10 bg-slate-950/60 p-3.5 flex flex-col justify-between">
+                        <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">
+                          {copy.developer}
                         </span>
+                        <div className="mt-1 flex items-center gap-1.5">
+                          <Building2 className="h-3.5 w-3.5 text-sky-400 shrink-0" />
+                          <span className="font-[family-name:var(--font-outfit)] text-sm font-bold text-white truncate">
+                            {modalDeveloper}
+                          </span>
+                        </div>
                       </div>
-                    </div>
+                    )}
                   </div>
 
                   {/* 3. BOTTOM SECTION: Floor Plan Card (Floor Plan on left, Price & Details on right) */}

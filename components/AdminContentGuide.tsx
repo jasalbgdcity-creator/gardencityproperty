@@ -76,9 +76,9 @@ export default function AdminContentGuide({ isOpen, onClose }: AdminContentGuide
           },
           {
             name: "Master Developer",
-            status: "Required",
+            status: "Optional",
             spec: "Plain text · Max 60 chars",
-            description: "The licensed real estate development entity behind the project.",
+            description: "The licensed real estate development entity behind the project (optional).",
             example: "Oman Real Estate Investment & Development Co.",
           },
           {

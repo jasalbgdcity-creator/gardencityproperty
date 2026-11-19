@@ -372,6 +372,17 @@ export function localizeField(val?: string | null, locale = "en", fallback?: str
 }
 
 /**
+ * Checks if a developer string is valid, non-empty, and not "N/A" (case-insensitive)
+ */
+export function isValidDeveloper(developer?: string | null): boolean {
+  if (!developer) return false;
+  const trimmed = developer.trim();
+  if (!trimmed) return false;
+  if (trimmed.toUpperCase() === "N/A") return false;
+  return true;
+}
+
+/**
  * Developer Name Localizer
  */
 export function localizeDeveloper(
@@ -379,11 +390,17 @@ export function localizeDeveloper(
   developerAr?: string | null,
   locale = "en"
 ): string {
+  if (!isValidDeveloper(developer)) {
+    if (locale === "ar" && isValidDeveloper(developerAr)) {
+      return developerAr!.trim();
+    }
+    return "";
+  }
   if (locale === "ar") {
     if (developerAr && developerAr.trim()) return developerAr.trim();
     return localizeToArabic(developer, "مطور عقاري رائد");
   }
-  return developer || "Premier Master Developer";
+  return developer ? developer.trim() : "";
 }
 
 /**

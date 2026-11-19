@@ -1812,8 +1812,8 @@ export default function AdminDashboardPage() {
       id: "developer",
       label: "Master Developer",
       status: Boolean(developer.trim()),
-      importance: "Required" as const,
-      hint: developer.trim() ? developer : "Missing developer entity",
+      importance: "Optional" as const,
+      hint: developer.trim() ? developer : "Optional developer entity",
       sectionAnchor: "sec-basic-info",
     },
     {
@@ -2877,13 +2877,12 @@ export default function AdminDashboardPage() {
                     </div>
 
                     <div>
-                      <label className="block text-xs font-semibold text-slate-300 uppercase">Master Developer *</label>
+                      <label className="block text-xs font-semibold text-slate-300 uppercase">Master Developer (Optional)</label>
                       <input
                         type="text"
-                        required
                         value={developer}
                         onChange={(e) => setDeveloper(e.target.value)}
-                        placeholder="e.g., Al Abrar Real Estate"
+                        placeholder="e.g., Al Abrar Real Estate (Optional)"
                         className="mt-1.5 w-full rounded-xl border border-white/10 bg-slate-900 px-3.5 py-2 text-xs text-white placeholder-slate-500 focus:border-sky-400 focus:outline-none"
                       />
                     </div>

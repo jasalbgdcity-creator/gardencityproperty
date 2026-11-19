@@ -86,6 +86,7 @@ export function getProjectWhatsAppUrl(params: {
 }): string {
   const isAr = params.locale === "ar" || params.language === "ar";
   const { projectName, location, developer } = params;
+  const hasDev = Boolean(developer && developer.trim() && developer.trim().toUpperCase() !== "N/A");
   const price = params.price || params.startingPrice;
   const targetPhone =
     params.whatsapp_number || params.whatsappNumber || params.phone;
@@ -95,13 +96,13 @@ export function getProjectWhatsAppUrl(params: {
     message = `مرحباً جاردن سيتي بروبرتيز،
 
 أود الاستفسار عن تفاصيل مشروع "${projectName}".
-${location ? `الموقع: ${location}\n` : ""}${price ? `السعر الابتدائي: ${price}\n` : ""}${developer ? `المطور: ${developer}\n` : ""}
+${location ? `الموقع: ${location}\n` : ""}${price ? `السعر الابتدائي: ${price}\n` : ""}${hasDev ? `المطور: ${developer}\n` : ""}
 يرجى تزويدي بالكتيب التعريفي وقائمة الوحدات المتاحة وخطط السداد.`;
   } else {
     message = `Hello Garden City Properties,
 
 I am interested in ${projectName}.
-${location ? `Location: ${location}\n` : ""}${price ? `Starting Price: ${price}\n` : ""}${developer ? `Developer: ${developer}\n` : ""}
+${location ? `Location: ${location}\n` : ""}${price ? `Starting Price: ${price}\n` : ""}${hasDev ? `Developer: ${developer}\n` : ""}
 Please share more details regarding availability, brochure and payment plans.`;
   }
 
